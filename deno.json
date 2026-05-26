@@ -1,0 +1,12 @@
+{
+  "tasks": {
+    "dev": "deno run --watch --allow-net --allow-env --allow-read --allow-write main.ts",
+    "start": "deno run --allow-net --allow-env --allow-read --allow-write main.ts",
+    "cache": "deno cache main.ts lib/db.ts plugins/auth/index.ts plugins/cors/index.ts plugins/logging/index.ts"
+  },
+  "imports": {
+    "@std/fs": "jsr:@std/fs@^1.0.0",
+    "@std/path": "jsr:@std/path@^1.0.0",
+    "@supabase/postgrest-js": "npm:@supabase/postgrest-js@^1.18.0"
+  }
+}

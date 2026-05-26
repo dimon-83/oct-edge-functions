@@ -1,0 +1,20 @@
+services:
+  oct-edge-functions:
+    build: .
+    container_name: oct-edge-functions
+    ports:
+      - "18080:18080"
+    environment:
+      - PGREST_URL=${PGREST_URL:-http://postgrest:3000}
+      - PGREST_SCHEMA=${PGREST_SCHEMA:-public}
+      - IA_CSC_BASE_URL=${IA_CSC_BASE_URL:-}
+      - PORT=${PORT:-18080}
+      - DENO_ENV=${DENO_ENV:-production}
+      - LOG_DIR=/app/logs
+    env_file:
+      - .env
+    volumes:
+      - ./functions:/app/functions:ro
+      - ./plugins:/app/plugins:ro
+      - ./logs:/app/logs
+    restart: unless-stopped
