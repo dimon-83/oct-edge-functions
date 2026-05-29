@@ -1,18 +1,16 @@
 services:
   oct-edge-functions:
-    build: .
-    container_name: oct-edge-functions
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: oct-edge-functions:${IMAGE_TAG:-latest}
+    container_name: oct-edge-functions-${DENO_ENV:-dev}
     ports:
-      - "18080:18080"
-    environment:
-      - PGREST_URL=${PGREST_URL:-http://postgrest:3000}
-      - PGREST_SCHEMA=${PGREST_SCHEMA:-public}
-      - IA_CSC_BASE_URL=${IA_CSC_BASE_URL:-}
-      - PORT=${PORT:-18080}
-      - DENO_ENV=${DENO_ENV:-production}
-      - LOG_DIR=/app/logs
+      - "${PORT:-18080}:${PORT:-18080}"
+    # 继承模式：先加载 .env，再用 .env.${DENO_ENV} 覆盖
     env_file:
       - .env
+      - .env.${DENO_ENV:-dev}
     volumes:
       - ./functions:/app/functions:ro
       - ./plugins:/app/plugins:ro
