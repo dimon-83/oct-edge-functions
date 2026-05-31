@@ -8,6 +8,10 @@ import { authPlugin } from "./plugins/auth/index.ts";
 import { corsPlugin } from "./plugins/cors/index.ts";
 import { loggingPlugin } from "./plugins/logging/index.ts";
 
+// MCP imports (dev only)
+import { handleSseRequest, handleMessageRequest } from "./lib/mcp/server.ts";
+import { loadRegistry } from "./lib/mcp/tools.ts";
+
 type Pipeline = (req: Request) => Promise<Response>;
 
 interface FunctionModule {
@@ -17,6 +21,8 @@ interface FunctionModule {
 
 const FUNCTIONS_DIR = Deno.env.get("FUNCTIONS_DIR") ?? "./functions";
 const PORT = parseInt(Deno.env.get("PORT") ?? "8080");
+const DENO_ENV = Deno.env.get("DENO_ENV") ?? "development";
+const MCP_ENABLED = DENO_ENV === "development" || DENO_ENV === "dev";
 
 const plugins: Plugin[] = [
   loggingPlugin,
@@ -27,6 +33,14 @@ const plugins: Plugin[] = [
 async function loadRoutes(): Promise<Map<string, Pipeline>> {
   const routes = new Map<string, Pipeline>();
   const functionsDir = await Deno.realPath(FUNCTIONS_DIR);
+
+  // Load registry to filter by status
+  const registry = await loadRegistry();
+  const activeFunctions = new Set(
+    registry.functions
+      .filter((f) => f.status === "active")
+      .map((f) => f.name)
+  );
 
   for await (const entry of walk(functionsDir, { exts: [".ts", ".js"], includeDirs: false })) {
     const relativePath = entry.path.slice(functionsDir.length);
@@ -41,12 +55,21 @@ async function loadRoutes(): Promise<Map<string, Pipeline>> {
 
     if (!routePath.startsWith("/")) routePath = "/" + routePath;
 
+    // Extract function name from route path (e.g. "/users" -> "users")
+    const funcName = routePath.replace(/^\//, "").split("/")[0];
+
+    // Skip inactive functions (only if registry has entries)
+    if (registry.functions.length > 0 && !activeFunctions.has(funcName)) {
+      console.log(`  [${routePath}] -> SKIPPED (status not active)`);
+      continue;
+    }
+
     try {
       const mod: FunctionModule = await import(toFileUrl(entry.path).href);
       const rawHandler = mod.default ?? mod.handler;
       if (typeof rawHandler === "function") {
         const wrapped = async (req: Request, ctx: Ctx, _next: () => Promise<Response>) => rawHandler(req, ctx);
-        const pluginMiddlewares = plugins.flatMap(p => p.middlewares);
+        const pluginMiddlewares = plugins.flatMap((p) => p.middlewares);
         const pipeline = compose([errorMiddleware, ...pluginMiddlewares, wrapped]);
         routes.set(routePath, pipeline);
         console.log(`  [${routePath}] -> ${entry.path}`);
@@ -62,11 +85,28 @@ async function loadRoutes(): Promise<Map<string, Pipeline>> {
 }
 
 const routes = await loadRoutes();
+
+// Log MCP status
+if (MCP_ENABLED) {
+  console.log(`\n[MCP] SSE endpoint: http://0.0.0.0:${PORT}/mcp/sse`);
+  console.log(`[MCP] Message endpoint: http://0.0.0.0:${PORT}/mcp/message?session_id=<id>`);
+}
+
 console.log(`\noct-edge-functions running on http://0.0.0.0:${PORT}\n`);
 
 Deno.serve({ port: PORT, hostname: "0.0.0.0" }, async (req) => {
   const url = new URL(req.url);
   const cleaned = url.pathname.replace(/\/$/, "") || "/";
+
+  // MCP endpoints (dev only)
+  if (MCP_ENABLED) {
+    if (cleaned === "/mcp/sse") {
+      return await handleSseRequest(req);
+    }
+    if (cleaned === "/mcp/message") {
+      return await handleMessageRequest(req);
+    }
+  }
 
   const pipeline = routes.get(cleaned);
 

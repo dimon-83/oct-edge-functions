@@ -12,7 +12,8 @@ services:
       - .env
       - .env.${DENO_ENV:-dev}
     volumes:
-      - ./functions:/app/functions:ro
+      - ./functions:/app/functions
+      - ./functions.json:/app/functions.json
       - ./plugins:/app/plugins:ro
       - ./logs:/app/logs
     restart: unless-stopped

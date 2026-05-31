@@ -35,6 +35,8 @@ help:
 	@echo "  make logs           查看日志"
 	@echo "  make clean          清理容器和镜像"
 	@echo "  make status         查看容器状态"
+	@echo "  make test           运行所有测试"
+	@echo "  make lint           运行代码检查"
 
 # ============================================
 # 构建镜像
@@ -102,6 +104,20 @@ clean:
 	$(DOCKER_COMPOSE) down --rmi all --volumes --remove-orphans 2>/dev/null || true
 	docker rmi $(FULL_IMAGE_NAME) 2>/dev/null || true
 	@echo "✅ 清理完成"
+
+# ============================================
+# 运行测试
+# ============================================
+.PHONY: test
+test:
+	deno test --allow-all
+
+# ============================================
+# 代码检查
+# ============================================
+.PHONY: lint
+lint:
+	deno lint
 
 # ============================================
 # 查看状态
