@@ -145,6 +145,108 @@ const TOOL_DEFINITIONS = [
     description: "Validate all active functions and build prod Docker image",
     inputSchema: { type: "object" as const, properties: {} },
   },
+  {
+    name: "pg_create_table",
+    description: "Create a PostgreSQL table in the specified schema",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        schema: { type: "string", description: "Database schema (default: public)" },
+        table_name: { type: "string", description: "Table name" },
+        columns: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              type: { type: "string" },
+              primary_key: { type: "boolean" },
+              nullable: { type: "boolean" },
+              default: { type: "string" },
+              unique: { type: "boolean" },
+              references: {
+                type: "object",
+                properties: {
+                  table: { type: "string" },
+                  column: { type: "string" },
+                },
+              },
+            },
+          },
+          description: "Column definitions",
+        },
+        if_not_exists: { type: "boolean", description: "Add IF NOT EXISTS clause" },
+      },
+      required: ["table_name", "columns"],
+    },
+  },
+  {
+    name: "pg_create_view",
+    description: "Create a PostgreSQL view (regular or materialized)",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        schema: { type: "string", description: "Database schema (default: public)" },
+        view_name: { type: "string", description: "View name" },
+        query: { type: "string", description: "SELECT query for the view" },
+        or_replace: { type: "boolean", description: "Use CREATE OR REPLACE" },
+        materialized: { type: "boolean", description: "Create a materialized view" },
+      },
+      required: ["view_name", "query"],
+    },
+  },
+  {
+    name: "pg_create_routine",
+    description: "Create or replace a PostgreSQL function or stored procedure",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        schema: { type: "string", description: "Database schema (default: public)" },
+        name: { type: "string", description: "Function/procedure name" },
+        language: { type: "string", description: "Language (default: plpgsql)" },
+        returns: { type: "string", description: "Return type (required for functions)" },
+        parameters: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              name: { type: "string" },
+              type: { type: "string" },
+            },
+          },
+          description: "Function parameters",
+        },
+        body: { type: "string", description: "Function body (the $$ ... $$ content)" },
+        type: {
+          type: "string",
+          enum: ["function", "procedure"],
+          description: "Routine type (default: function)",
+        },
+      },
+      required: ["name", "body"],
+    },
+  },
+  {
+    name: "pg_create_policy",
+    description: "Create a Row-Level Security policy on a table",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        schema: { type: "string", description: "Database schema (default: public)" },
+        table_name: { type: "string", description: "Table name" },
+        policy_name: { type: "string", description: "Policy name" },
+        operation: {
+          type: "string",
+          enum: ["ALL", "SELECT", "INSERT", "UPDATE", "DELETE"],
+          description: "Operation type (default: ALL)",
+        },
+        role: { type: "string", description: "Database role (default: public)" },
+        using_expression: { type: "string", description: "USING expression for the policy" },
+        with_check_expression: { type: "string", description: "WITH CHECK expression" },
+      },
+      required: ["table_name", "policy_name"],
+    },
+  },
 ];
 
 // ------------------------------------------------------------------
@@ -187,6 +289,18 @@ async function handleToolCall(request: JsonRpcRequest): Promise<JsonRpcResponse>
         break;
       case "publish_to_prod":
         result = await tools.publishToProd();
+        break;
+      case "pg_create_table":
+        result = await tools.pgCreateTable(args);
+        break;
+      case "pg_create_view":
+        result = await tools.pgCreateView(args);
+        break;
+      case "pg_create_routine":
+        result = await tools.pgCreateRoutine(args);
+        break;
+      case "pg_create_policy":
+        result = await tools.pgCreatePolicy(args);
         break;
       default:
         return {
@@ -286,8 +400,8 @@ export async function handleSseRequest(req: Request): Promise<Response> {
       // Store controller for later use (when sending notifications)
       session.controller = controller;
       
-      // Send endpoint event only
-      const endpointEvent = `event: endpoint\ndata: ${JSON.stringify({ uri: session.messageEndpoint })}\n\n`;
+      // Send endpoint event - some clients expect just the URI string
+      const endpointEvent = `event: endpoint\ndata: ${session.messageEndpoint}\n\n`;
       controller.enqueue(new TextEncoder().encode(endpointEvent));
       console.log(`[MCP] Sent endpoint event: ${session.messageEndpoint}`);
 
@@ -309,6 +423,104 @@ export async function handleSseRequest(req: Request): Promise<Response> {
       "Access-Control-Allow-Headers": "*",
     },
   });
+}
+
+// ------------------------------------------------------------------
+// Streamable HTTP transport (MCP 2025-06-18)
+// Single endpoint: POST /mcp for JSON-RPC, GET /mcp for SSE stream
+// ------------------------------------------------------------------
+
+export async function handleStreamableHttpRequest(req: Request): Promise<Response> {
+  if (req.method === "GET") {
+    return handleStreamableSseStream(req);
+  }
+  if (req.method === "POST") {
+    return handleStreamablePost(req);
+  }
+  return new Response("Method not allowed", { status: 405 });
+}
+
+async function handleStreamableSseStream(_req: Request): Promise<Response> {
+  const session = createSession();
+
+  const body = new ReadableStream({
+    start(controller) {
+      session.controller = controller;
+      const endpointEvent = `event: endpoint\ndata: ${session.messageEndpoint}\n\n`;
+      controller.enqueue(new TextEncoder().encode(endpointEvent));
+    },
+    cancel() {
+      deleteSession(session.id);
+    },
+  });
+
+  return new Response(body, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      "Access-Control-Allow-Origin": "*",
+    },
+  });
+}
+
+async function handleStreamablePost(req: Request): Promise<Response> {
+  const accept = req.headers.get("Accept") || "";
+  const wantsStream = accept.includes("text/event-stream");
+
+  try {
+    const body = await req.json();
+    const request = body as JsonRpcRequest;
+
+    const response = await handleRequest(request);
+
+    if (request.method === "initialize" && response.result) {
+      if (wantsStream) {
+        const stream = new ReadableStream({
+          start(controller) {
+            const respEvent = `event: message\ndata: ${JSON.stringify(response)}\n\n`;
+            controller.enqueue(new TextEncoder().encode(respEvent));
+
+            const initNotification = `event: message\ndata: ${JSON.stringify({
+              jsonrpc: "2.0",
+              method: "notifications/initialized",
+            })}\n\n`;
+            controller.enqueue(new TextEncoder().encode(initNotification));
+
+            controller.close();
+          },
+        });
+
+        return new Response(stream, {
+          headers: {
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache",
+            "Access-Control-Allow-Origin": "*",
+          },
+        });
+      }
+    }
+
+    return Response.json(response, {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  } catch (err) {
+    return Response.json(
+      {
+        jsonrpc: "2.0",
+        id: null,
+        error: {
+          code: -32700,
+          message: err instanceof Error ? err.message : "Parse error",
+        },
+      },
+      {
+        status: 400,
+        headers: { "Access-Control-Allow-Origin": "*" },
+      },
+    );
+  }
 }
 
 export async function handleMessageRequest(req: Request): Promise<Response> {

@@ -54,6 +54,7 @@
   },
   "workspace": {
     "dependencies": [
+      "jsr:@std/assert@1",
       "jsr:@std/fs@1",
       "jsr:@std/path@1",
       "npm:@supabase/postgrest-js@^1.18.0"

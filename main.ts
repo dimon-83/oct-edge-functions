@@ -9,7 +9,7 @@ import { corsPlugin } from "./plugins/cors/index.ts";
 import { loggingPlugin } from "./plugins/logging/index.ts";
 
 // MCP imports (dev only)
-import { handleSseRequest, handleMessageRequest } from "./lib/mcp/server.ts";
+import { handleSseRequest, handleMessageRequest, handleStreamableHttpRequest } from "./lib/mcp/server.ts";
 import { loadRegistry } from "./lib/mcp/tools.ts";
 
 type Pipeline = (req: Request) => Promise<Response>;
@@ -100,11 +100,26 @@ Deno.serve({ port: PORT, hostname: "0.0.0.0" }, async (req) => {
 
   // MCP endpoints (dev only)
   if (MCP_ENABLED) {
+    // Handle CORS preflight for MCP endpoints
+    if (req.method === "OPTIONS" && (cleaned === "/mcp/sse" || cleaned === "/mcp/message")) {
+      return new Response(null, {
+        status: 204,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Accept",
+        },
+      });
+    }
     if (cleaned === "/mcp/sse") {
       return await handleSseRequest(req);
     }
     if (cleaned === "/mcp/message") {
       return await handleMessageRequest(req);
+    }
+    // Streamable HTTP transport (MCP 2025-06-18)
+    if (cleaned === "/mcp") {
+      return await handleStreamableHttpRequest(req);
     }
   }
 
