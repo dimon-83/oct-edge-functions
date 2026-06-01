@@ -8,6 +8,7 @@ export interface McpSession {
   createdAt: number;
   lastActivity: number;
   messageEndpoint: string;
+  controller?: ReadableStreamDefaultController<Uint8Array>;
 }
 
 const sessions = new Map<string, McpSession>();

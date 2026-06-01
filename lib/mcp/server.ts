@@ -279,21 +279,23 @@ async function handleRequest(request: JsonRpcRequest): Promise<JsonRpcResponse> 
 
 export async function handleSseRequest(req: Request): Promise<Response> {
   const session = createSession();
+  console.log(`[MCP] SSE connection established, session_id: ${session.id}`);
 
   const body = new ReadableStream({
     start(controller) {
-      // Send endpoint event
+      // Store controller for later use (when sending notifications)
+      session.controller = controller;
+      
+      // Send endpoint event only
       const endpointEvent = `event: endpoint\ndata: ${JSON.stringify({ uri: session.messageEndpoint })}\n\n`;
       controller.enqueue(new TextEncoder().encode(endpointEvent));
+      console.log(`[MCP] Sent endpoint event: ${session.messageEndpoint}`);
 
-      // Send initialization event
-      const initEvent = `event: message\ndata: ${JSON.stringify({
-        jsonrpc: "2.0",
-        method: "notifications/initialized",
-      })}\n\n`;
-      controller.enqueue(new TextEncoder().encode(initEvent));
+      // Note: notifications/initialized should be sent after client sends initialize request
+      // This is handled in the message endpoint
     },
     cancel() {
+      console.log(`[MCP] SSE connection closed, session_id: ${session.id}`);
       deleteSession(session.id);
     },
   });
@@ -303,6 +305,8 @@ export async function handleSseRequest(req: Request): Promise<Response> {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
       "Connection": "keep-alive",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "*",
     },
   });
 }
@@ -312,20 +316,42 @@ export async function handleMessageRequest(req: Request): Promise<Response> {
   const sessionId = url.searchParams.get("session_id");
 
   if (!sessionId) {
+    console.log(`[MCP] Message request missing session_id`);
     return Response.json({ error: "Missing session_id" }, { status: 400 });
   }
 
   const session = getSession(sessionId);
   if (!session) {
+    console.log(`[MCP] Invalid or expired session: ${sessionId}`);
     return Response.json({ error: "Invalid or expired session" }, { status: 400 });
   }
 
   try {
     const body = await req.json();
     const request = body as JsonRpcRequest;
+    console.log(`[MCP] Received message: ${request.method}, session_id: ${sessionId}`);
+    
     const response = await handleRequest(request);
-    return Response.json(response);
+    console.log(`[MCP] Sending response: ${JSON.stringify(response).substring(0, 200)}...`);
+    
+    // After successful initialize, send notifications/initialized via SSE
+    if (request.method === "initialize" && response.result && session.controller) {
+      const initNotification = `event: message\ndata: ${JSON.stringify({
+        jsonrpc: "2.0",
+        method: "notifications/initialized",
+      })}\n\n`;
+      session.controller.enqueue(new TextEncoder().encode(initNotification));
+      console.log(`[MCP] Sent notifications/initialized via SSE`);
+    }
+    
+    return Response.json(response, {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "*",
+      },
+    });
   } catch (err) {
+    console.error(`[MCP] Error handling message: ${err}`);
     return Response.json(
       {
         jsonrpc: "2.0",
@@ -334,7 +360,13 @@ export async function handleMessageRequest(req: Request): Promise<Response> {
           message: err instanceof Error ? err.message : "Parse error",
         },
       },
-      { status: 400 },
+      {
+        status: 400,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": "*",
+        },
+      },
     );
   }
 }
