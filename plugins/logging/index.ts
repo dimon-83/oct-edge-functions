@@ -1,5 +1,4 @@
 import type { Middleware } from "../../lib/middleware.ts";
-import type { Plugin } from "../../lib/plugin.ts";
 import { createRequestLogger } from "../../lib/logger.ts";
 
 const loggingMiddleware: Middleware = async (req, ctx, next) => {
@@ -25,7 +24,4 @@ const loggingMiddleware: Middleware = async (req, ctx, next) => {
   return resp;
 };
 
-export const loggingPlugin: Plugin = {
-  name: "logging",
-  middlewares: [loggingMiddleware],
-};
+export const loggingMiddlewares: Middleware[] = [loggingMiddleware];

@@ -5,7 +5,8 @@
 
 import { createSession, getSession, deleteSession } from "./session.ts";
 import * as tools from "./tools.ts";
-import type { ToolResult } from "./tools.ts";
+import type { ToolResult } from "./types.ts";
+import { ToolRegistry, getDefaultRegistry } from "./registry.ts";
 
 const MCP_VERSION = "2024-11-05";
 
@@ -24,39 +25,39 @@ interface JsonRpcResponse {
 }
 
 // ------------------------------------------------------------------
-// Tool definitions for MCP initialization
+// Tool registry setup
 // ------------------------------------------------------------------
 
-const TOOL_DEFINITIONS = [
-  {
+function setupRegistry(): ToolRegistry {
+  const r = getDefaultRegistry();
+
+  r.register({
     name: "list_functions",
     description: "List all functions in the registry with their status and version",
-    inputSchema: { type: "object" as const, properties: {} },
-  },
-  {
+    inputSchema: { type: "object", properties: {} },
+    handler: () => tools.listFunctions(),
+  });
+
+  r.register({
     name: "get_function",
     description: "Get a function's metadata and source code",
     inputSchema: {
-      type: "object" as const,
-      properties: {
-        name: { type: "string", description: "Function name" },
-      },
+      type: "object",
+      properties: { name: { type: "string", description: "Function name" } },
       required: ["name"],
     },
-  },
-  {
+    handler: (a) => tools.getFunction(a as { name: string }),
+  });
+
+  r.register({
     name: "create_function",
     description: "Create a new function from a template",
     inputSchema: {
-      type: "object" as const,
+      type: "object",
       properties: {
         name: { type: "string", description: "Function name (directory name)" },
-        template: {
-          type: "string",
-          enum: ["crud", "query", "proxy", "transform"],
-          description: "Code template to use",
-        },
-        description: { type: "string", description: "Natural language description of the function" },
+        template: { type: "string", enum: ["crud", "query", "proxy", "transform"], description: "Code template to use" },
+        description: { type: "string", description: "Natural language description" },
         spec: {
           type: "object",
           properties: {
@@ -67,89 +68,93 @@ const TOOL_DEFINITIONS = [
       },
       required: ["name", "template"],
     },
-  },
-  {
+    handler: (a) => tools.createFunction(a as { name: string; template: "crud" | "query" | "proxy" | "transform"; description?: string; spec?: Record<string, string> }),
+  });
+
+  r.register({
     name: "write_tests",
     description: "Generate test scaffold for a function",
     inputSchema: {
-      type: "object" as const,
-      properties: {
-        name: { type: "string", description: "Function name" },
-      },
+      type: "object",
+      properties: { name: { type: "string", description: "Function name" } },
       required: ["name"],
     },
-  },
-  {
+    handler: (a) => tools.writeTests(a as { name: string }),
+  });
+
+  r.register({
     name: "run_tests",
     description: "Run tests for a function or all functions",
     inputSchema: {
-      type: "object" as const,
-      properties: {
-        name: { type: "string", description: "Function name (omit to run all)" },
-      },
+      type: "object",
+      properties: { name: { type: "string", description: "Function name (omit to run all)" } },
     },
-  },
-  {
+    handler: (a) => tools.runTests(a as { name?: string }),
+  });
+
+  r.register({
     name: "update_function",
     description: "Update a function's source code",
     inputSchema: {
-      type: "object" as const,
+      type: "object",
       properties: {
         name: { type: "string", description: "Function name" },
         code: { type: "string", description: "New source code" },
       },
       required: ["name", "code"],
     },
-  },
-  {
+    handler: (a) => tools.updateFunction(a as { name: string; code: string }),
+  });
+
+  r.register({
     name: "deploy_function",
     description: "Deploy a function: run tests, bump version, set status to active",
     inputSchema: {
-      type: "object" as const,
+      type: "object",
       properties: {
         name: { type: "string", description: "Function name" },
-        version_bump: {
-          type: "string",
-          enum: ["major", "minor", "patch"],
-          description: "Semver bump type",
-        },
+        version_bump: { type: "string", enum: ["major", "minor", "patch"], description: "Semver bump type" },
         reason: { type: "string", description: "Changelog reason" },
       },
       required: ["name", "version_bump"],
     },
-  },
-  {
+    handler: (a) => tools.deployFunction(a as { name: string; version_bump: "major" | "minor" | "patch"; reason?: string }),
+  });
+
+  r.register({
     name: "disable_function",
     description: "Disable a function (set status to deprecated)",
     inputSchema: {
-      type: "object" as const,
-      properties: {
-        name: { type: "string", description: "Function name" },
-      },
+      type: "object",
+      properties: { name: { type: "string", description: "Function name" } },
       required: ["name"],
     },
-  },
-  {
+    handler: (a) => tools.disableFunction(a as { name: string }),
+  });
+
+  r.register({
     name: "delete_function",
     description: "Archive a function (soft delete)",
     inputSchema: {
-      type: "object" as const,
-      properties: {
-        name: { type: "string", description: "Function name" },
-      },
+      type: "object",
+      properties: { name: { type: "string", description: "Function name" } },
       required: ["name"],
     },
-  },
-  {
+    handler: (a) => tools.deleteFunction(a as { name: string }),
+  });
+
+  r.register({
     name: "publish_to_prod",
     description: "Validate all active functions and build prod Docker image",
-    inputSchema: { type: "object" as const, properties: {} },
-  },
-  {
+    inputSchema: { type: "object", properties: {} },
+    handler: () => tools.publishToProd(),
+  });
+
+  r.register({
     name: "pg_create_table",
     description: "Create a PostgreSQL table in the specified schema",
     inputSchema: {
-      type: "object" as const,
+      type: "object",
       properties: {
         schema: { type: "string", description: "Database schema (default: public)" },
         table_name: { type: "string", description: "Table name" },
@@ -166,10 +171,7 @@ const TOOL_DEFINITIONS = [
               unique: { type: "boolean" },
               references: {
                 type: "object",
-                properties: {
-                  table: { type: "string" },
-                  column: { type: "string" },
-                },
+                properties: { table: { type: "string" }, column: { type: "string" } },
               },
             },
           },
@@ -179,12 +181,14 @@ const TOOL_DEFINITIONS = [
       },
       required: ["table_name", "columns"],
     },
-  },
-  {
+    handler: (a) => tools.pgCreateTable(a),
+  });
+
+  r.register({
     name: "pg_create_view",
     description: "Create a PostgreSQL view (regular or materialized)",
     inputSchema: {
-      type: "object" as const,
+      type: "object",
       properties: {
         schema: { type: "string", description: "Database schema (default: public)" },
         view_name: { type: "string", description: "View name" },
@@ -194,12 +198,14 @@ const TOOL_DEFINITIONS = [
       },
       required: ["view_name", "query"],
     },
-  },
-  {
+    handler: (a) => tools.pgCreateView(a),
+  });
+
+  r.register({
     name: "pg_create_routine",
     description: "Create or replace a PostgreSQL function or stored procedure",
     inputSchema: {
-      type: "object" as const,
+      type: "object",
       properties: {
         schema: { type: "string", description: "Database schema (default: public)" },
         name: { type: "string", description: "Function/procedure name" },
@@ -209,45 +215,41 @@ const TOOL_DEFINITIONS = [
           type: "array",
           items: {
             type: "object",
-            properties: {
-              name: { type: "string" },
-              type: { type: "string" },
-            },
+            properties: { name: { type: "string" }, type: { type: "string" } },
           },
           description: "Function parameters",
         },
         body: { type: "string", description: "Function body (the $$ ... $$ content)" },
-        type: {
-          type: "string",
-          enum: ["function", "procedure"],
-          description: "Routine type (default: function)",
-        },
+        type: { type: "string", enum: ["function", "procedure"], description: "Routine type (default: function)" },
       },
       required: ["name", "body"],
     },
-  },
-  {
+    handler: (a) => tools.pgCreateRoutine(a),
+  });
+
+  r.register({
     name: "pg_create_policy",
     description: "Create a Row-Level Security policy on a table",
     inputSchema: {
-      type: "object" as const,
+      type: "object",
       properties: {
         schema: { type: "string", description: "Database schema (default: public)" },
         table_name: { type: "string", description: "Table name" },
         policy_name: { type: "string", description: "Policy name" },
-        operation: {
-          type: "string",
-          enum: ["ALL", "SELECT", "INSERT", "UPDATE", "DELETE"],
-          description: "Operation type (default: ALL)",
-        },
+        operation: { type: "string", enum: ["ALL", "SELECT", "INSERT", "UPDATE", "DELETE"], description: "Operation type (default: ALL)" },
         role: { type: "string", description: "Database role (default: public)" },
         using_expression: { type: "string", description: "USING expression for the policy" },
         with_check_expression: { type: "string", description: "WITH CHECK expression" },
       },
       required: ["table_name", "policy_name"],
     },
-  },
-];
+    handler: (a) => tools.pgCreatePolicy(a),
+  });
+
+  return r;
+}
+
+const registry = setupRegistry();
 
 // ------------------------------------------------------------------
 // Request handlers
@@ -256,59 +258,19 @@ const TOOL_DEFINITIONS = [
 async function handleToolCall(request: JsonRpcRequest): Promise<JsonRpcResponse> {
   const { name, arguments: args = {} } = request.params as { name: string; arguments?: Record<string, unknown> };
 
+  const tool = registry.get(name);
+  if (!tool) {
+    return {
+      jsonrpc: "2.0",
+      id: request.id,
+      error: { code: -32601, message: `Unknown tool: ${name}` },
+    };
+  }
+
   let result: ToolResult;
 
   try {
-    switch (name) {
-      case "list_functions":
-        result = await tools.listFunctions();
-        break;
-      case "get_function":
-        result = await tools.getFunction(args as { name: string });
-        break;
-      case "create_function":
-        result = await tools.createFunction(args as { name: string; template: "crud" | "query" | "proxy" | "transform"; description?: string; spec?: Record<string, string> });
-        break;
-      case "write_tests":
-        result = await tools.writeTests(args as { name: string });
-        break;
-      case "run_tests":
-        result = await tools.runTests(args as { name?: string });
-        break;
-      case "update_function":
-        result = await tools.updateFunction(args as { name: string; code: string });
-        break;
-      case "deploy_function":
-        result = await tools.deployFunction(args as { name: string; version_bump: "major" | "minor" | "patch"; reason?: string });
-        break;
-      case "disable_function":
-        result = await tools.disableFunction(args as { name: string });
-        break;
-      case "delete_function":
-        result = await tools.deleteFunction(args as { name: string });
-        break;
-      case "publish_to_prod":
-        result = await tools.publishToProd();
-        break;
-      case "pg_create_table":
-        result = await tools.pgCreateTable(args);
-        break;
-      case "pg_create_view":
-        result = await tools.pgCreateView(args);
-        break;
-      case "pg_create_routine":
-        result = await tools.pgCreateRoutine(args);
-        break;
-      case "pg_create_policy":
-        result = await tools.pgCreatePolicy(args);
-        break;
-      default:
-        return {
-          jsonrpc: "2.0",
-          id: request.id,
-          error: { code: -32601, message: `Unknown tool: ${name}` },
-        };
-    }
+    result = await tool.handler(args);
   } catch (err) {
     return {
       jsonrpc: "2.0",
@@ -370,7 +332,7 @@ async function handleRequest(request: JsonRpcRequest): Promise<JsonRpcResponse> 
       return {
         jsonrpc: "2.0",
         id: request.id,
-        result: { tools: TOOL_DEFINITIONS },
+        result: { tools: registry.list() },
       };
     }
 

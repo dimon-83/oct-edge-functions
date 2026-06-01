@@ -1,5 +1,5 @@
-import { AuthError, ValidationError } from "../../lib/context.ts";
-import type { Ctx } from "../../lib/context.ts";
+import { AuthError, ValidationError } from "@oct/context.ts";
+import type { Ctx } from "@oct/context.ts";
 
 // Template: crud
 // Usage: Single-table REST CRUD backed by ctx.db

@@ -1,5 +1,5 @@
-import { AuthError } from "../../lib/context.ts";
-import type { Ctx } from "../../lib/context.ts";
+import { AuthError } from "@oct/context.ts";
+import type { Ctx } from "@oct/context.ts";
 
 // Template: query
 // Usage: Read-only data retrieval, possibly with transformation

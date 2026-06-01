@@ -1,8 +1,3 @@
-/**
- * In-memory MCP session store for SSE transport.
- * Sufficient for single-instance dev environment.
- */
-
 export interface McpSession {
   id: string;
   createdAt: number;
@@ -11,42 +6,74 @@ export interface McpSession {
   controller?: ReadableStreamDefaultController<Uint8Array>;
 }
 
-const sessions = new Map<string, McpSession>();
-const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
-
-export function createSession(): McpSession {
-  const id = crypto.randomUUID();
-  const now = Date.now();
-  const session: McpSession = {
-    id,
-    createdAt: now,
-    lastActivity: now,
-    messageEndpoint: `/mcp/message?session_id=${id}`,
-  };
-  sessions.set(id, session);
-  return session;
+export interface SessionStore {
+  create(): McpSession;
+  get(id: string): McpSession | undefined;
+  delete(id: string): boolean;
+  cleanupExpired(): void;
+  startCleanup(intervalMs?: number): void;
+  stopCleanup(): void;
 }
 
-export function getSession(id: string): McpSession | undefined {
-  const session = sessions.get(id);
-  if (session) {
-    session.lastActivity = Date.now();
+export class InMemorySessionStore implements SessionStore {
+  #sessions = new Map<string, McpSession>();
+  #intervalId: ReturnType<typeof setInterval> | null = null;
+  readonly #timeoutMs: number;
+
+  constructor(timeoutMs = 30 * 60 * 1000) {
+    this.#timeoutMs = timeoutMs;
   }
-  return session;
-}
 
-export function deleteSession(id: string): boolean {
-  return sessions.delete(id);
-}
+  create(): McpSession {
+    const id = crypto.randomUUID();
+    const now = Date.now();
+    const session: McpSession = {
+      id,
+      createdAt: now,
+      lastActivity: now,
+      messageEndpoint: `/mcp/message?session_id=${id}`,
+    };
+    this.#sessions.set(id, session);
+    return session;
+  }
 
-export function cleanupExpiredSessions(): void {
-  const now = Date.now();
-  for (const [id, session] of sessions.entries()) {
-    if (now - session.lastActivity > SESSION_TIMEOUT_MS) {
-      sessions.delete(id);
+  get(id: string): McpSession | undefined {
+    const session = this.#sessions.get(id);
+    if (session) {
+      session.lastActivity = Date.now();
+    }
+    return session;
+  }
+
+  delete(id: string): boolean {
+    return this.#sessions.delete(id);
+  }
+
+  cleanupExpired(): void {
+    const now = Date.now();
+    for (const [id, session] of this.#sessions.entries()) {
+      if (now - session.lastActivity > this.#timeoutMs) {
+        this.#sessions.delete(id);
+      }
+    }
+  }
+
+  startCleanup(intervalMs = 5 * 60 * 1000): void {
+    if (this.#intervalId !== null) return;
+    this.#intervalId = setInterval(() => this.cleanupExpired(), intervalMs);
+  }
+
+  stopCleanup(): void {
+    if (this.#intervalId !== null) {
+      clearInterval(this.#intervalId);
+      this.#intervalId = null;
     }
   }
 }
 
-// Periodic cleanup every 5 minutes
-setInterval(cleanupExpiredSessions, 5 * 60 * 1000);
+const defaultStore = new InMemorySessionStore();
+defaultStore.startCleanup();
+
+export const createSession = defaultStore.create.bind(defaultStore);
+export const getSession = defaultStore.get.bind(defaultStore);
+export const deleteSession = defaultStore.delete.bind(defaultStore);

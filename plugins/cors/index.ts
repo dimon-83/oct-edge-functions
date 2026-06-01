@@ -1,5 +1,4 @@
 import type { Middleware } from "../../lib/middleware.ts";
-import type { Plugin } from "../../lib/plugin.ts";
 
 const corsOrigins = (Deno.env.get("CORS_ORIGIN") ?? "*")
   .split(",")
@@ -45,7 +44,4 @@ const corsMiddleware: Middleware = async (req, _ctx, next) => {
   return resp;
 };
 
-export const corsPlugin: Plugin = {
-  name: "cors",
-  middlewares: [corsMiddleware],
-};
+export const corsMiddlewares: Middleware[] = [corsMiddleware];

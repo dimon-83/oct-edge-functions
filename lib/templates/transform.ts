@@ -1,5 +1,5 @@
-import { ValidationError } from "../../lib/context.ts";
-import type { Ctx } from "../../lib/context.ts";
+import { ValidationError } from "@oct/context.ts";
+import type { Ctx } from "@oct/context.ts";
 
 // Template: transform
 // Usage: Pure data computation with no external dependencies

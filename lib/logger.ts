@@ -1,8 +1,6 @@
 export type LogLevel = "debug" | "info" | "error";
 
 const LOG_LEVELS: Record<LogLevel, number> = { debug: 0, info: 1, error: 2 };
-const configuredLevel: LogLevel =
-  (Deno.env.get("LOG_LEVEL") as LogLevel) ?? "info";
 
 export interface Logger {
   debug(message: string, meta?: Record<string, unknown>): void;
@@ -65,78 +63,108 @@ class RotatingFileWriter {
   }
 }
 
-const logDir = Deno.env.get("LOG_DIR") ?? "./logs";
-const maxBytes = parseInt(
-  Deno.env.get("LOG_MAX_BYTES") ?? String(10 * 1024 * 1024),
-  10,
-);
-const maxFiles = parseInt(Deno.env.get("LOG_MAX_FILES") ?? "5", 10);
-
-let fileWriter: RotatingFileWriter | null = null;
-let writerReady: Promise<void> | null = null;
-
-async function ensureWriter(): Promise<void> {
-  if (fileWriter) return;
-  if (writerReady) return writerReady;
-  writerReady = (async () => {
-    try {
-      await Deno.mkdir(logDir, { recursive: true });
-      fileWriter = new RotatingFileWriter(
-        `${logDir}/app.log`,
-        maxBytes,
-        maxFiles,
-      );
-    } catch {
-      // File logging unavailable — fall back to console only
-    }
-  })();
-  return writerReady;
+export interface LoggerConfig {
+  level?: LogLevel;
+  logDir?: string;
+  maxBytes?: number;
+  maxFiles?: number;
 }
 
-ensureWriter();
+export class LoggerFactory {
+  #configuredLevel: LogLevel;
+  #logDir: string;
+  #maxBytes: number;
+  #maxFiles: number;
+  #fileWriter: RotatingFileWriter | null = null;
+  #writerReady: Promise<void> | null = null;
 
-export function shouldLog(level: LogLevel): boolean {
-  return LOG_LEVELS[level] >= LOG_LEVELS[configuredLevel];
-}
-
-function log(
-  level: LogLevel,
-  message: string,
-  meta?: Record<string, unknown>,
-): void {
-  if (!shouldLog(level)) return;
-
-  const output = JSON.stringify({
-    timestamp: new Date().toISOString(),
-    level,
-    message,
-    ...meta,
-  });
-
-  if (level === "error") {
-    console.error(output);
-  } else {
-    console.log(output);
+  constructor(config: LoggerConfig = {}) {
+    this.#configuredLevel = config.level ??
+      (Deno.env.get("LOG_LEVEL") as LogLevel) ?? "info";
+    this.#logDir = config.logDir ?? Deno.env.get("LOG_DIR") ?? "./logs";
+    this.#maxBytes = config.maxBytes ??
+      parseInt(Deno.env.get("LOG_MAX_BYTES") ?? String(10 * 1024 * 1024), 10);
+    this.#maxFiles = config.maxFiles ??
+      parseInt(Deno.env.get("LOG_MAX_FILES") ?? "5", 10);
   }
 
-  ensureWriter().then(() => fileWriter?.writeLine(output));
+  get level(): LogLevel {
+    return this.#configuredLevel;
+  }
+
+  shouldLog(level: LogLevel): boolean {
+    return LOG_LEVELS[level] >= LOG_LEVELS[this.#configuredLevel];
+  }
+
+  async #ensureWriter(): Promise<void> {
+    if (this.#fileWriter) return;
+    if (this.#writerReady) return this.#writerReady;
+    this.#writerReady = (async () => {
+      try {
+        await Deno.mkdir(this.#logDir, { recursive: true });
+        this.#fileWriter = new RotatingFileWriter(
+          `${this.#logDir}/app.log`,
+          this.#maxBytes,
+          this.#maxFiles,
+        );
+      } catch {
+        // file logging unavailable — fall back to console only
+      }
+    })();
+    return this.#writerReady;
+  }
+
+  #log(
+    level: LogLevel,
+    message: string,
+    meta?: Record<string, unknown>,
+  ): void {
+    if (!this.shouldLog(level)) return;
+
+    const output = JSON.stringify({
+      timestamp: new Date().toISOString(),
+      level,
+      message,
+      ...meta,
+    });
+
+    if (level === "error") {
+      console.error(output);
+    } else {
+      console.log(output);
+    }
+
+    this.#ensureWriter().then(() => this.#fileWriter?.writeLine(output));
+  }
+
+  createLogger(requestId?: string): Logger {
+    if (!requestId) {
+      return {
+        debug: (message, meta) => this.#log("debug", message, meta),
+        info: (message, meta) => this.#log("info", message, meta),
+        error: (message, meta) => this.#log("error", message, meta),
+      };
+    }
+    return {
+      debug: (message, meta) =>
+        this.#log("debug", message, { requestId, ...meta }),
+      info: (message, meta) =>
+        this.#log("info", message, { requestId, ...meta }),
+      error: (message, meta) =>
+        this.#log("error", message, { requestId, ...meta }),
+    };
+  }
+
+  async close(): Promise<void> {
+    this.#fileWriter?.close();
+    this.#fileWriter = null;
+  }
 }
 
-export const logger: Logger = {
-  debug: (message, meta) => log("debug", message, meta),
-  info: (message, meta) => log("info", message, meta),
-  error: (message, meta) => log("error", message, meta),
-};
+const defaultFactory = new LoggerFactory();
 
-export function createRequestLogger(requestId: string): Logger {
-  return {
-    debug: (message, meta) => log("debug", message, { requestId, ...meta }),
-    info: (message, meta) => log("info", message, { requestId, ...meta }),
-    error: (message, meta) => log("error", message, { requestId, ...meta }),
-  };
-}
-
-export async function closeLogger(): Promise<void> {
-  fileWriter?.close();
-  fileWriter = null;
-}
+export const shouldLog = defaultFactory.shouldLog.bind(defaultFactory);
+export const logger: Logger = defaultFactory.createLogger();
+export const createRequestLogger = (requestId: string): Logger =>
+  defaultFactory.createLogger(requestId);
+export const closeLogger = (): Promise<void> => defaultFactory.close();

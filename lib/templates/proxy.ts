@@ -1,5 +1,5 @@
-import { AppError } from "../../lib/context.ts";
-import type { Ctx } from "../../lib/context.ts";
+import { AppError } from "@oct/context.ts";
+import type { Ctx } from "@oct/context.ts";
 
 // Template: proxy
 // Usage: Forward requests to an external service

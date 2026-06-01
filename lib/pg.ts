@@ -1,49 +1,55 @@
-/**
- * Direct PostgreSQL connection utility for MCP tools.
- * Uses DATABASE_URL env var for connection.
- */
-
 import { Pool } from "npm:pg@^8";
 
-let pool: Pool | null = null;
+export class PgClient {
+  #pool: Pool | null = null;
+  readonly #databaseUrl: string;
 
-function getPool(): Pool {
-  if (!pool) {
-    const databaseUrl = Deno.env.get("DATABASE_URL");
-    if (!databaseUrl) {
-      throw new Error(
-        "DATABASE_URL environment variable is required for pg_* tools. " +
-        "Set it to a PostgreSQL connection string, e.g.: " +
-        "postgresql://user:password@host:5432/database",
-      );
+  constructor(databaseUrl?: string) {
+    this.#databaseUrl = databaseUrl ?? Deno.env.get("DATABASE_URL") ?? "";
+  }
+
+  #getPool(): Pool {
+    if (!this.#pool) {
+      if (!this.#databaseUrl) {
+        throw new Error(
+          "DATABASE_URL environment variable is required for pg_* tools. " +
+          "Set it to a PostgreSQL connection string, e.g.: " +
+          "postgresql://user:password@host:5432/database",
+        );
+      }
+      this.#pool = new Pool({ connectionString: this.#databaseUrl });
     }
-    pool = new Pool({ connectionString: databaseUrl });
+    return this.#pool;
   }
-  return pool;
+
+  async executeSql(
+    sql: string,
+  ): Promise<{ rows: Record<string, unknown>[]; rowCount: number | null }> {
+    const client = await this.#getPool().connect();
+    try {
+      const result = await client.query(sql);
+      return {
+        rows: (result.rows ?? []) as Record<string, unknown>[],
+        rowCount: result.rowCount ?? null,
+      };
+    } finally {
+      client.release();
+    }
+  }
+
+  close(): void {
+    this.#pool?.end();
+    this.#pool = null;
+  }
 }
 
-export async function executeSql(
-  sql: string,
-): Promise<{ rows: Record<string, unknown>[]; rowCount: number | null }> {
-  const client = await getPool().connect();
-  try {
-    const result = await client.query(sql);
-    return {
-      rows: (result.rows ?? []) as Record<string, unknown>[],
-      rowCount: result.rowCount ?? null,
-    };
-  } finally {
-    client.release();
-  }
-}
+const defaultClient = new PgClient();
+
+export const executeSql = defaultClient.executeSql.bind(defaultClient);
 
 export function quoteIdent(id: string): string {
   return `"${id.replace(/"/g, '""')}"`;
 }
-
-// ---------------------------------------------------------------------------
-// SQL safety validation — strictly restricts dangerous operations
-// ---------------------------------------------------------------------------
 
 export interface SafetyCheck {
   safe: boolean;
@@ -57,22 +63,15 @@ function stripComments(sql: string): string {
 }
 
 const DANGEROUS_PATTERNS = [
-  // Object destruction
   /\bDROP\s+(TABLE|VIEW|SCHEMA|DATABASE|INDEX|FUNCTION|PROCEDURE|TRIGGER|RULE|POLICY|DOMAIN|TYPE|SEQUENCE|EXTENSION|MATERIALIZED\s+VIEW|FOREIGN\s+TABLE|SERVER|ROLE|USER|TABLESPACE|PUBLICATION|SUBSCRIPTION|TEXT\s+SEARCH|OWNED)\b/i,
-  // Data destruction
   /\bTRUNCATE\b/i,
-  // Privilege escalation / dangerous ALTER
   /\bALTER\s+(SYSTEM|DATABASE|ROLE|USER|TABLEGROUP|FOREIGN\s+DATA\s+WRAPPER|SERVER)\b/i,
-  // Privileged creation
   /\bCREATE\s+(ROLE|USER|DATABASE|TABLESPACE)\b/i,
-  // Privilege granting
   /\bGRANT\s+(ALL|pg_)/i,
   /\bREVOKE\s+(ALL|pg_)/i,
-  // Admin operations that lock or disrupt
   /\bREINDEX\b/i,
   /\bCLUSTER\b/i,
   /\bVACUUM\b/i,
-  // Dangerous built-in function calls
   /\bpg_sleep\s*\(/i,
   /\bpg_terminate_backend\s*\(/i,
   /\bpg_cancel_backend\s*\(/i,
