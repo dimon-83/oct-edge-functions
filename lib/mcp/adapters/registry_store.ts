@@ -1,5 +1,3 @@
-import { join } from "@std/path";
-import { ToolResult } from "../types.ts";
 import type { FunctionRegistry } from "../types.ts";
 
 export interface RegistryStore {
@@ -23,7 +21,10 @@ export class FileRegistryStore implements RegistryStore {
   }
 
   async save(registry: FunctionRegistry): Promise<void> {
-    await Deno.writeTextFile(this.registryPath, JSON.stringify(registry, null, 2));
+    await Deno.writeTextFile(
+      this.registryPath,
+      JSON.stringify(registry, null, 2),
+    );
   }
 
   getFunctionsDir(): string {
@@ -34,11 +35,12 @@ export class FileRegistryStore implements RegistryStore {
 export class InMemoryRegistryStore implements RegistryStore {
   private registry: FunctionRegistry = { functions: [] };
 
-  async load(): Promise<FunctionRegistry> {
-    return JSON.parse(JSON.stringify(this.registry));
+  load(): Promise<FunctionRegistry> {
+    return Promise.resolve(JSON.parse(JSON.stringify(this.registry)));
   }
 
-  async save(registry: FunctionRegistry): Promise<void> {
+  save(registry: FunctionRegistry): Promise<void> {
     this.registry = JSON.parse(JSON.stringify(registry));
+    return Promise.resolve();
   }
 }

@@ -16,7 +16,8 @@ export class DenoLinter implements Linter {
     });
 
     const { code, stdout, stderr } = await cmd.output();
-    const output = new TextDecoder().decode(stdout) + "\n" + new TextDecoder().decode(stderr);
+    const output = new TextDecoder().decode(stdout) + "\n" +
+      new TextDecoder().decode(stderr);
 
     return { success: code === 0, output };
   }
@@ -29,7 +30,7 @@ export class MockLinter implements Linter {
     this.result = { success: true, output: "", ...overrides };
   }
 
-  async lint(_filePath: string): Promise<LintResult> {
-    return this.result;
+  lint(_filePath: string): Promise<LintResult> {
+    return Promise.resolve(this.result);
   }
 }

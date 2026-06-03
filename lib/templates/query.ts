@@ -1,5 +1,5 @@
-import { AuthError } from "@oct/context.ts";
-import type { Ctx } from "@oct/context.ts";
+import { AuthError } from "@oct-edge-fns-core/context.ts";
+import type { Ctx } from "@oct-edge-fns-core/context.ts";
 
 // Template: query
 // Usage: Read-only data retrieval, possibly with transformation
@@ -7,7 +7,10 @@ import type { Ctx } from "@oct/context.ts";
 
 const TABLE_NAME = "{{TABLE_NAME}}";
 
-export default async function handler(req: Request, ctx: Ctx): Promise<Response> {
+export default async function handler(
+  req: Request,
+  ctx: Ctx,
+): Promise<Response> {
   if (req.method !== "GET") {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
   }

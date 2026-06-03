@@ -23,8 +23,12 @@ export class ToolRegistry {
     return this.#tools.get(name);
   }
 
-  list(): Array<{ name: string; description: string; inputSchema: Record<string, unknown> }> {
-    return Array.from(this.#tools.values()).map(({ name, description, inputSchema }) => ({
+  list(): Array<
+    { name: string; description: string; inputSchema: Record<string, unknown> }
+  > {
+    return Array.from(this.#tools.values()).map((
+      { name, description, inputSchema },
+    ) => ({
       name,
       description,
       inputSchema,

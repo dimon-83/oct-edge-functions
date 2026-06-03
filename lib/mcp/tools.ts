@@ -8,47 +8,52 @@
 
 import { join } from "@std/path";
 import {
-  quoteIdent,
-  checkRoutineBody,
-  checkViewQuery,
   checkColumnType,
   checkDefaultValue,
   checkPolicyExpression,
+  checkRoutineBody,
+  checkViewQuery,
+  quoteIdent,
 } from "../pg.ts";
 
-import type {
-  FunctionMeta,
-  FunctionRegistry,
-  ToolResult,
-} from "./types.ts";
+import type { FunctionMeta, FunctionRegistry, ToolResult } from "./types.ts";
 
 import {
-  FileRegistryStore,
-  DenoTestRunner,
   DenoLinter,
-  PgSqlExecutor,
+  DenoTestRunner,
+  FileRegistryStore,
   MakeBuildService,
+  PgSqlExecutor,
 } from "./adapters/index.ts";
 
 import type {
-  RegistryStore,
-  TestRunner,
-  Linter,
-  SqlExecutor,
   BuildService,
+  Linter,
+  RegistryStore,
+  SqlExecutor,
+  TestRunner,
 } from "./adapters/index.ts";
 
 // ------------------------------------------------------------------
 // Re-export types for backward compatibility
 // ------------------------------------------------------------------
 
-export type { FunctionStatus, FunctionMeta, ChangelogEntry, FunctionRegistry, ToolResult } from "./types.ts";
+export type {
+  ChangelogEntry,
+  FunctionMeta,
+  FunctionRegistry,
+  FunctionStatus,
+  ToolResult,
+} from "./types.ts";
 
 // ------------------------------------------------------------------
 // Helpers
 // ------------------------------------------------------------------
 
-function bumpVersion(current: string, bump: "major" | "minor" | "patch"): string {
+function bumpVersion(
+  current: string,
+  bump: "major" | "minor" | "patch",
+): string {
   const [major, minor, patch] = current.split(".").map(Number);
   switch (bump) {
     case "major":
@@ -92,7 +97,13 @@ export class McpTools {
     const reg = await this.registry.load();
     const meta = reg.functions.find((f) => f.name === args.name);
     if (!meta) {
-      return { success: false, error: { code: "NOT_FOUND", message: `Function '${args.name}' not found` } };
+      return {
+        success: false,
+        error: {
+          code: "NOT_FOUND",
+          message: `Function '${args.name}' not found`,
+        },
+      };
     }
 
     let code = "";
@@ -113,7 +124,13 @@ export class McpTools {
   }): Promise<ToolResult> {
     const reg = await this.registry.load();
     if (reg.functions.find((f) => f.name === args.name)) {
-      return { success: false, error: { code: "ALREADY_EXISTS", message: `Function '${args.name}' already exists` } };
+      return {
+        success: false,
+        error: {
+          code: "ALREADY_EXISTS",
+          message: `Function '${args.name}' already exists`,
+        },
+      };
     }
 
     const requiredSpec: Record<string, string[]> = {
@@ -131,7 +148,9 @@ export class McpTools {
         success: false,
         error: {
           code: "MISSING_SPEC",
-          message: `Template '${args.template}' requires spec field(s): ${missing.join(", ")}`,
+          message: `Template '${args.template}' requires spec field(s): ${
+            missing.join(", ")
+          }`,
         },
       };
     }
@@ -143,10 +162,16 @@ export class McpTools {
     let templateCode = await Deno.readTextFile(templatePath);
 
     if (args.spec?.table_name) {
-      templateCode = templateCode.replace(/\{\{TABLE_NAME\}\}/g, args.spec.table_name);
+      templateCode = templateCode.replace(
+        /\{\{TABLE_NAME\}\}/g,
+        args.spec.table_name,
+      );
     }
     if (args.spec?.upstream_url) {
-      templateCode = templateCode.replace(/\{\{UPSTREAM_URL\}\}/g, args.spec.upstream_url);
+      templateCode = templateCode.replace(
+        /\{\{UPSTREAM_URL\}\}/g,
+        args.spec.upstream_url,
+      );
     }
 
     const indexPath = join(funcDir, "index.ts");
@@ -156,7 +181,11 @@ export class McpTools {
     if (!lintResult.success) {
       return {
         success: false,
-        error: { code: "LINT_ERROR", message: "Generated code failed lint check", context: { lint_output: lintResult.output } },
+        error: {
+          code: "LINT_ERROR",
+          message: "Generated code failed lint check",
+          context: { lint_output: lintResult.output },
+        },
       };
     }
 
@@ -180,7 +209,13 @@ export class McpTools {
     const reg = await this.registry.load();
     const meta = reg.functions.find((f) => f.name === args.name);
     if (!meta) {
-      return { success: false, error: { code: "NOT_FOUND", message: `Function '${args.name}' not found` } };
+      return {
+        success: false,
+        error: {
+          code: "NOT_FOUND",
+          message: `Function '${args.name}' not found`,
+        },
+      };
     }
 
     const testPath = join(meta.path, "test.ts");
@@ -192,7 +227,8 @@ export class McpTools {
     if (code.includes('case "PATCH"')) methods.push("PATCH");
     if (code.includes('case "DELETE"')) methods.push("DELETE");
 
-    const testCode = `import { runHandler, assertStatus } from "@oct/testing.ts";
+    const testCode =
+      `import { runHandler, assertStatus } from "@oct-edge-fns-core/testing.ts";
 import handler from "./index.ts";
 
 Deno.test("${args.name} - should handle GET", async () => {
@@ -200,16 +236,22 @@ Deno.test("${args.name} - should handle GET", async () => {
   assertStatus(res, 200);
 });
 
-${methods.includes("POST") ? `Deno.test("${args.name} - should handle POST", async () => {
+${
+        methods.includes("POST")
+          ? `Deno.test("${args.name} - should handle POST", async () => {
   const res = await runHandler(handler, {
     method: "POST",
     path: "/${args.name}",
     body: {},
   });
   assertStatus(res, 201);
-});` : ""}
+});`
+          : ""
+      }
 
-${methods.includes("PATCH") ? `Deno.test("${args.name} - should handle PATCH", async () => {
+${
+        methods.includes("PATCH")
+          ? `Deno.test("${args.name} - should handle PATCH", async () => {
   const res = await runHandler(handler, {
     method: "PATCH",
     path: "/${args.name}",
@@ -217,16 +259,22 @@ ${methods.includes("PATCH") ? `Deno.test("${args.name} - should handle PATCH", a
     body: {},
   });
   assertStatus(res, 200);
-});` : ""}
+});`
+          : ""
+      }
 
-${methods.includes("DELETE") ? `Deno.test("${args.name} - should handle DELETE", async () => {
+${
+        methods.includes("DELETE")
+          ? `Deno.test("${args.name} - should handle DELETE", async () => {
   const res = await runHandler(handler, {
     method: "DELETE",
     path: "/${args.name}",
     query: { id: "1" },
   });
   assertStatus(res, 200);
-});` : ""}
+});`
+          : ""
+      }
 `;
 
     await Deno.writeTextFile(testPath, testCode);
@@ -235,7 +283,10 @@ ${methods.includes("DELETE") ? `Deno.test("${args.name} - should handle DELETE",
     meta.updated_at = new Date().toISOString();
     await this.registry.save(reg);
 
-    return { success: true, data: { test_path: testPath, test_code: testCode } };
+    return {
+      success: true,
+      data: { test_path: testPath, test_code: testCode },
+    };
   }
 
   async runTests(args: { name?: string }): Promise<ToolResult> {
@@ -251,11 +302,19 @@ ${methods.includes("DELETE") ? `Deno.test("${args.name} - should handle DELETE",
     };
   }
 
-  async updateFunction(args: { name: string; code: string }): Promise<ToolResult> {
+  async updateFunction(
+    args: { name: string; code: string },
+  ): Promise<ToolResult> {
     const reg = await this.registry.load();
     const meta = reg.functions.find((f) => f.name === args.name);
     if (!meta) {
-      return { success: false, error: { code: "NOT_FOUND", message: `Function '${args.name}' not found` } };
+      return {
+        success: false,
+        error: {
+          code: "NOT_FOUND",
+          message: `Function '${args.name}' not found`,
+        },
+      };
     }
 
     const indexPath = join(meta.path, "index.ts");
@@ -265,7 +324,11 @@ ${methods.includes("DELETE") ? `Deno.test("${args.name} - should handle DELETE",
     if (!lintResult.success) {
       return {
         success: false,
-        error: { code: "LINT_ERROR", message: "Updated code failed lint check", context: { lint_output: lintResult.output } },
+        error: {
+          code: "LINT_ERROR",
+          message: "Updated code failed lint check",
+          context: { lint_output: lintResult.output },
+        },
       };
     }
 
@@ -283,14 +346,24 @@ ${methods.includes("DELETE") ? `Deno.test("${args.name} - should handle DELETE",
     const reg = await this.registry.load();
     const meta = reg.functions.find((f) => f.name === args.name);
     if (!meta) {
-      return { success: false, error: { code: "NOT_FOUND", message: `Function '${args.name}' not found` } };
+      return {
+        success: false,
+        error: {
+          code: "NOT_FOUND",
+          message: `Function '${args.name}' not found`,
+        },
+      };
     }
 
     const testResult = await this.testRunner.run(args.name);
     if (testResult.exitCode !== 0) {
       return {
         success: false,
-        error: { code: "TESTS_FAILED", message: `Cannot deploy: tests failed for '${args.name}'`, context: { test_output: testResult.output } },
+        error: {
+          code: "TESTS_FAILED",
+          message: `Cannot deploy: tests failed for '${args.name}'`,
+          context: { test_output: testResult.output },
+        },
       };
     }
 
@@ -309,14 +382,26 @@ ${methods.includes("DELETE") ? `Deno.test("${args.name} - should handle DELETE",
 
     await this.registry.save(reg);
 
-    return { success: true, data: { meta, test_result: { passed: testResult.passed, failed: testResult.failed } } };
+    return {
+      success: true,
+      data: {
+        meta,
+        test_result: { passed: testResult.passed, failed: testResult.failed },
+      },
+    };
   }
 
   async disableFunction(args: { name: string }): Promise<ToolResult> {
     const reg = await this.registry.load();
     const meta = reg.functions.find((f) => f.name === args.name);
     if (!meta) {
-      return { success: false, error: { code: "NOT_FOUND", message: `Function '${args.name}' not found` } };
+      return {
+        success: false,
+        error: {
+          code: "NOT_FOUND",
+          message: `Function '${args.name}' not found`,
+        },
+      };
     }
 
     meta.status = "deprecated";
@@ -336,7 +421,13 @@ ${methods.includes("DELETE") ? `Deno.test("${args.name} - should handle DELETE",
     const reg = await this.registry.load();
     const meta = reg.functions.find((f) => f.name === args.name);
     if (!meta) {
-      return { success: false, error: { code: "NOT_FOUND", message: `Function '${args.name}' not found` } };
+      return {
+        success: false,
+        error: {
+          code: "NOT_FOUND",
+          message: `Function '${args.name}' not found`,
+        },
+      };
     }
 
     meta.status = "archived";
@@ -360,7 +451,11 @@ ${methods.includes("DELETE") ? `Deno.test("${args.name} - should handle DELETE",
     if (testResult.exitCode !== 0) {
       return {
         success: false,
-        error: { code: "TESTS_FAILED", message: "Cannot publish to prod: some tests failed", context: { test_output: testResult.output } },
+        error: {
+          code: "TESTS_FAILED",
+          message: "Cannot publish to prod: some tests failed",
+          context: { test_output: testResult.output },
+        },
       };
     }
 
@@ -368,7 +463,11 @@ ${methods.includes("DELETE") ? `Deno.test("${args.name} - should handle DELETE",
     if (!buildResult.success) {
       return {
         success: false,
-        error: { code: "BUILD_FAILED", message: "Failed to build prod image", context: { build_output: buildResult.output } },
+        error: {
+          code: "BUILD_FAILED",
+          message: "Failed to build prod image",
+          context: { build_output: buildResult.output },
+        },
       };
     }
 
@@ -390,17 +489,38 @@ ${methods.includes("DELETE") ? `Deno.test("${args.name} - should handle DELETE",
     const columns = args.columns as Array<Record<string, unknown>>;
     const ifNotExists = args.if_not_exists as boolean || false;
 
-    if (!tableName) return { success: false, error: { code: "INVALID_ARGS", message: "table_name is required" } };
+    if (!tableName) {
+      return {
+        success: false,
+        error: { code: "INVALID_ARGS", message: "table_name is required" },
+      };
+    }
     if (!columns || !Array.isArray(columns) || columns.length === 0) {
-      return { success: false, error: { code: "INVALID_ARGS", message: "columns is required and must be a non-empty array" } };
+      return {
+        success: false,
+        error: {
+          code: "INVALID_ARGS",
+          message: "columns is required and must be a non-empty array",
+        },
+      };
     }
 
     for (const col of columns) {
       const typeCheck = checkColumnType(col.type as string);
-      if (!typeCheck.safe) return { success: false, error: { code: "UNSAFE_SQL", message: typeCheck.reason! } };
+      if (!typeCheck.safe) {
+        return {
+          success: false,
+          error: { code: "UNSAFE_SQL", message: typeCheck.reason! },
+        };
+      }
       if (col.default !== undefined && col.default !== null) {
         const defaultCheck = checkDefaultValue(col.default as string);
-        if (!defaultCheck.safe) return { success: false, error: { code: "UNSAFE_SQL", message: defaultCheck.reason! } };
+        if (!defaultCheck.safe) {
+          return {
+            success: false,
+            error: { code: "UNSAFE_SQL", message: defaultCheck.reason! },
+          };
+        }
       }
     }
 
@@ -408,17 +528,23 @@ ${methods.includes("DELETE") ? `Deno.test("${args.name} - should handle DELETE",
       const parts = [quoteIdent(col.name as string), col.type as string];
       if (col.primary_key) parts.push("PRIMARY KEY");
       if (col.nullable === false) parts.push("NOT NULL");
-      if (col.default !== undefined && col.default !== null) parts.push(`DEFAULT ${col.default}`);
+      if (col.default !== undefined && col.default !== null) {
+        parts.push(`DEFAULT ${col.default}`);
+      }
       if (col.unique) parts.push("UNIQUE");
       if (col.references) {
         const ref = col.references as Record<string, string>;
-        parts.push(`REFERENCES ${quoteIdent(ref.table)}(${quoteIdent(ref.column)})`);
+        parts.push(
+          `REFERENCES ${quoteIdent(ref.table)}(${quoteIdent(ref.column)})`,
+        );
       }
       return "  " + parts.join(" ");
     });
 
     const sql = [
-      `CREATE TABLE ${ifNotExists ? "IF NOT EXISTS " : ""}${quoteIdent(schema)}.${quoteIdent(tableName)} (`,
+      `CREATE TABLE ${ifNotExists ? "IF NOT EXISTS " : ""}${
+        quoteIdent(schema)
+      }.${quoteIdent(tableName)} (`,
       colDefs.join(",\n"),
       ");",
     ].join("\n");
@@ -427,7 +553,14 @@ ${methods.includes("DELETE") ? `Deno.test("${args.name} - should handle DELETE",
       await this.sqlExecutor.execute(sql);
       return { success: true, data: { sql, schema, table: tableName } };
     } catch (err) {
-      return { success: false, error: { code: "SQL_ERROR", message: err instanceof Error ? err.message : String(err), context: { sql } } };
+      return {
+        success: false,
+        error: {
+          code: "SQL_ERROR",
+          message: err instanceof Error ? err.message : String(err),
+          context: { sql },
+        },
+      };
     }
   }
 
@@ -438,21 +571,50 @@ ${methods.includes("DELETE") ? `Deno.test("${args.name} - should handle DELETE",
     const orReplace = args.or_replace as boolean || false;
     const materialized = args.materialized as boolean || false;
 
-    if (!viewName) return { success: false, error: { code: "INVALID_ARGS", message: "view_name is required" } };
-    if (!query) return { success: false, error: { code: "INVALID_ARGS", message: "query is required" } };
+    if (!viewName) {
+      return {
+        success: false,
+        error: { code: "INVALID_ARGS", message: "view_name is required" },
+      };
+    }
+    if (!query) {
+      return {
+        success: false,
+        error: { code: "INVALID_ARGS", message: "query is required" },
+      };
+    }
 
     const viewSafety = checkViewQuery(query);
-    if (!viewSafety.safe) return { success: false, error: { code: "UNSAFE_SQL", message: viewSafety.reason! } };
+    if (!viewSafety.safe) {
+      return {
+        success: false,
+        error: { code: "UNSAFE_SQL", message: viewSafety.reason! },
+      };
+    }
 
     const sql = materialized
-      ? `CREATE ${orReplace ? "OR REPLACE " : ""}MATERIALIZED VIEW ${quoteIdent(schema)}.${quoteIdent(viewName)} AS\n${query};`
-      : `CREATE ${orReplace ? "OR REPLACE " : ""}VIEW ${quoteIdent(schema)}.${quoteIdent(viewName)} AS\n${query};`;
+      ? `CREATE ${orReplace ? "OR REPLACE " : ""}MATERIALIZED VIEW ${
+        quoteIdent(schema)
+      }.${quoteIdent(viewName)} AS\n${query};`
+      : `CREATE ${orReplace ? "OR REPLACE " : ""}VIEW ${quoteIdent(schema)}.${
+        quoteIdent(viewName)
+      } AS\n${query};`;
 
     try {
       await this.sqlExecutor.execute(sql);
-      return { success: true, data: { sql, schema, view: viewName, materialized } };
+      return {
+        success: true,
+        data: { sql, schema, view: viewName, materialized },
+      };
     } catch (err) {
-      return { success: false, error: { code: "SQL_ERROR", message: err instanceof Error ? err.message : String(err), context: { sql } } };
+      return {
+        success: false,
+        error: {
+          code: "SQL_ERROR",
+          message: err instanceof Error ? err.message : String(err),
+          context: { sql },
+        },
+      };
     }
   }
 
@@ -465,17 +627,37 @@ ${methods.includes("DELETE") ? `Deno.test("${args.name} - should handle DELETE",
     const parameters = (args.parameters as Array<Record<string, string>>) || [];
     const routineType = (args.type as string) || "function";
 
-    if (!name) return { success: false, error: { code: "INVALID_ARGS", message: "name is required" } };
-    if (!body) return { success: false, error: { code: "INVALID_ARGS", message: "body is required" } };
+    if (!name) {
+      return {
+        success: false,
+        error: { code: "INVALID_ARGS", message: "name is required" },
+      };
+    }
+    if (!body) {
+      return {
+        success: false,
+        error: { code: "INVALID_ARGS", message: "body is required" },
+      };
+    }
 
     const bodySafety = checkRoutineBody(body);
-    if (!bodySafety.safe) return { success: false, error: { code: "UNSAFE_SQL", message: bodySafety.reason! } };
+    if (!bodySafety.safe) {
+      return {
+        success: false,
+        error: { code: "UNSAFE_SQL", message: bodySafety.reason! },
+      };
+    }
 
-    const paramsStr = parameters.map((p) => `${quoteIdent(p.name)} ${p.type}`).join(", ");
-    const returnsClause = routineType === "procedure" ? "" : `  RETURNS ${returns}\n`;
+    const paramsStr = parameters.map((p) => `${quoteIdent(p.name)} ${p.type}`)
+      .join(", ");
+    const returnsClause = routineType === "procedure"
+      ? ""
+      : `  RETURNS ${returns}\n`;
 
     const sql = [
-      `CREATE OR REPLACE ${routineType === "procedure" ? "PROCEDURE" : "FUNCTION"} ${quoteIdent(schema)}.${quoteIdent(name)}(${paramsStr})`,
+      `CREATE OR REPLACE ${
+        routineType === "procedure" ? "PROCEDURE" : "FUNCTION"
+      } ${quoteIdent(schema)}.${quoteIdent(name)}(${paramsStr})`,
       `${returnsClause}  LANGUAGE ${language}`,
       `AS $$`,
       body,
@@ -484,9 +666,19 @@ ${methods.includes("DELETE") ? `Deno.test("${args.name} - should handle DELETE",
 
     try {
       await this.sqlExecutor.execute(sql);
-      return { success: true, data: { sql, schema, routine: name, type: routineType } };
+      return {
+        success: true,
+        data: { sql, schema, routine: name, type: routineType },
+      };
     } catch (err) {
-      return { success: false, error: { code: "SQL_ERROR", message: err instanceof Error ? err.message : String(err), context: { sql } } };
+      return {
+        success: false,
+        error: {
+          code: "SQL_ERROR",
+          message: err instanceof Error ? err.message : String(err),
+          context: { sql },
+        },
+      };
     }
   }
 
@@ -499,20 +691,42 @@ ${methods.includes("DELETE") ? `Deno.test("${args.name} - should handle DELETE",
     const usingExpression = args.using_expression as string;
     const withCheckExpression = args.with_check_expression as string;
 
-    if (!tableName) return { success: false, error: { code: "INVALID_ARGS", message: "table_name is required" } };
-    if (!policyName) return { success: false, error: { code: "INVALID_ARGS", message: "policy_name is required" } };
+    if (!tableName) {
+      return {
+        success: false,
+        error: { code: "INVALID_ARGS", message: "table_name is required" },
+      };
+    }
+    if (!policyName) {
+      return {
+        success: false,
+        error: { code: "INVALID_ARGS", message: "policy_name is required" },
+      };
+    }
 
     if (usingExpression) {
       const exprSafety = checkPolicyExpression(usingExpression);
-      if (!exprSafety.safe) return { success: false, error: { code: "UNSAFE_SQL", message: exprSafety.reason! } };
+      if (!exprSafety.safe) {
+        return {
+          success: false,
+          error: { code: "UNSAFE_SQL", message: exprSafety.reason! },
+        };
+      }
     }
     if (withCheckExpression) {
       const exprSafety = checkPolicyExpression(withCheckExpression);
-      if (!exprSafety.safe) return { success: false, error: { code: "UNSAFE_SQL", message: exprSafety.reason! } };
+      if (!exprSafety.safe) {
+        return {
+          success: false,
+          error: { code: "UNSAFE_SQL", message: exprSafety.reason! },
+        };
+      }
     }
 
     const usingClause = usingExpression ? `\n  USING (${usingExpression})` : "";
-    const checkClause = withCheckExpression ? `\n  WITH CHECK (${withCheckExpression})` : "";
+    const checkClause = withCheckExpression
+      ? `\n  WITH CHECK (${withCheckExpression})`
+      : "";
 
     const sql = [
       `CREATE POLICY ${quoteIdent(policyName)}`,
@@ -524,14 +738,32 @@ ${methods.includes("DELETE") ? `Deno.test("${args.name} - should handle DELETE",
       ";",
     ].filter((line) => line !== "").join("\n");
 
-    const enableRlsSql = `ALTER TABLE ${quoteIdent(schema)}.${quoteIdent(tableName)} ENABLE ROW LEVEL SECURITY;`;
+    const enableRlsSql = `ALTER TABLE ${quoteIdent(schema)}.${
+      quoteIdent(tableName)
+    } ENABLE ROW LEVEL SECURITY;`;
 
     try {
       await this.sqlExecutor.execute(enableRlsSql);
       await this.sqlExecutor.execute(sql);
-      return { success: true, data: { sql, enable_rls_sql: enableRlsSql, schema, table: tableName, policy: policyName } };
+      return {
+        success: true,
+        data: {
+          sql,
+          enable_rls_sql: enableRlsSql,
+          schema,
+          table: tableName,
+          policy: policyName,
+        },
+      };
     } catch (err) {
-      return { success: false, error: { code: "SQL_ERROR", message: err instanceof Error ? err.message : String(err), context: { sql, enable_rls_sql: enableRlsSql } } };
+      return {
+        success: false,
+        error: {
+          code: "SQL_ERROR",
+          message: err instanceof Error ? err.message : String(err),
+          context: { sql, enable_rls_sql: enableRlsSql },
+        },
+      };
     }
   }
 }
@@ -561,16 +793,31 @@ export const loadRegistry = () => _defaultStore.load();
 export const saveRegistry = (r: FunctionRegistry) => _defaultStore.save(r);
 
 export const listFunctions = () => _defaultTools.listFunctions();
-export const getFunction = (a: { name: string }) => _defaultTools.getFunction(a);
-export const createFunction = (a: Parameters<McpTools["createFunction"]>[0]) => _defaultTools.createFunction(a);
+export const getFunction = (a: { name: string }) =>
+  _defaultTools.getFunction(a);
+export const createFunction = (a: Parameters<McpTools["createFunction"]>[0]) =>
+  _defaultTools.createFunction(a);
 export const writeTests = (a: { name: string }) => _defaultTools.writeTests(a);
 export const runTests = (a: { name?: string }) => _defaultTools.runTests(a);
-export const updateFunction = (a: { name: string; code: string }) => _defaultTools.updateFunction(a);
-export const deployFunction = (a: { name: string; version_bump: "major" | "minor" | "patch"; reason?: string }) => _defaultTools.deployFunction(a);
-export const disableFunction = (a: { name: string }) => _defaultTools.disableFunction(a);
-export const deleteFunction = (a: { name: string }) => _defaultTools.deleteFunction(a);
+export const updateFunction = (a: { name: string; code: string }) =>
+  _defaultTools.updateFunction(a);
+export const deployFunction = (
+  a: {
+    name: string;
+    version_bump: "major" | "minor" | "patch";
+    reason?: string;
+  },
+) => _defaultTools.deployFunction(a);
+export const disableFunction = (a: { name: string }) =>
+  _defaultTools.disableFunction(a);
+export const deleteFunction = (a: { name: string }) =>
+  _defaultTools.deleteFunction(a);
 export const publishToProd = () => _defaultTools.publishToProd();
-export const pgCreateTable = (a: Record<string, unknown>) => _defaultTools.pgCreateTable(a);
-export const pgCreateView = (a: Record<string, unknown>) => _defaultTools.pgCreateView(a);
-export const pgCreateRoutine = (a: Record<string, unknown>) => _defaultTools.pgCreateRoutine(a);
-export const pgCreatePolicy = (a: Record<string, unknown>) => _defaultTools.pgCreatePolicy(a);
+export const pgCreateTable = (a: Record<string, unknown>) =>
+  _defaultTools.pgCreateTable(a);
+export const pgCreateView = (a: Record<string, unknown>) =>
+  _defaultTools.pgCreateView(a);
+export const pgCreateRoutine = (a: Record<string, unknown>) =>
+  _defaultTools.pgCreateRoutine(a);
+export const pgCreatePolicy = (a: Record<string, unknown>) =>
+  _defaultTools.pgCreatePolicy(a);

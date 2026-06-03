@@ -26,10 +26,13 @@ export class DenoTestRunner implements TestRunner {
     });
 
     const { code, stdout, stderr } = await cmd.output();
-    const output = new TextDecoder().decode(stdout) + "\n" + new TextDecoder().decode(stderr);
+    const output = new TextDecoder().decode(stdout) + "\n" +
+      new TextDecoder().decode(stderr);
 
     const passed = output.match(/test result: ok\. (\d+) passed/)?.[1];
-    const failed = output.match(/test result: FAILED\. (\d+) passed; (\d+) failed/)?.[2];
+    const failed = output.match(
+      /test result: FAILED\. (\d+) passed; (\d+) failed/,
+    )?.[2];
 
     return {
       exitCode: code,
@@ -53,7 +56,7 @@ export class MockTestRunner implements TestRunner {
     };
   }
 
-  async run(_name?: string): Promise<TestResult> {
-    return this.result;
+  run(_name?: string): Promise<TestResult> {
+    return Promise.resolve(this.result);
   }
 }

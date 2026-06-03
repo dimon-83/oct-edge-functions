@@ -2,7 +2,10 @@ import { getInletOrgTree } from "./inlet.ts";
 import { AuthError } from "../../lib/context.ts";
 import type { Ctx } from "../../lib/context.ts";
 
-export default async function handler(req: Request, ctx: Ctx): Promise<Response> {
+export default async function handler(
+  req: Request,
+  ctx: Ctx,
+): Promise<Response> {
   if (req.method !== "GET") {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
   }

@@ -98,20 +98,18 @@ export class LoggerFactory {
 
   async #ensureWriter(): Promise<void> {
     if (this.#fileWriter) return;
-    if (this.#writerReady) return this.#writerReady;
-    this.#writerReady = (async () => {
-      try {
-        await Deno.mkdir(this.#logDir, { recursive: true });
-        this.#fileWriter = new RotatingFileWriter(
-          `${this.#logDir}/app.log`,
-          this.#maxBytes,
-          this.#maxFiles,
-        );
-      } catch {
-        // file logging unavailable — fall back to console only
-      }
-    })();
-    return this.#writerReady;
+    if (!this.#writerReady) {
+      this.#writerReady = Deno.mkdir(this.#logDir, { recursive: true })
+        .then(() => {
+          this.#fileWriter = new RotatingFileWriter(
+            `${this.#logDir}/app.log`,
+            this.#maxBytes,
+            this.#maxFiles,
+          );
+        })
+        .catch(() => {});
+    }
+    await this.#writerReady;
   }
 
   #log(
@@ -155,16 +153,17 @@ export class LoggerFactory {
     };
   }
 
-  async close(): Promise<void> {
+  close(): void {
     this.#fileWriter?.close();
     this.#fileWriter = null;
   }
 }
 
-const defaultFactory = new LoggerFactory();
+const defaultFactory: LoggerFactory = new LoggerFactory();
 
-export const shouldLog = defaultFactory.shouldLog.bind(defaultFactory);
+export const shouldLog: (level: LogLevel) => boolean =
+  defaultFactory.shouldLog.bind(defaultFactory);
 export const logger: Logger = defaultFactory.createLogger();
 export const createRequestLogger = (requestId: string): Logger =>
   defaultFactory.createLogger(requestId);
-export const closeLogger = (): Promise<void> => defaultFactory.close();
+export const closeLogger = (): void => { defaultFactory.close(); };

@@ -1,5 +1,5 @@
-import { ValidationError } from "@oct/context.ts";
-import type { Ctx } from "@oct/context.ts";
+import { ValidationError } from "@oct-edge-fns-core/context.ts";
+import type { Ctx } from "@oct-edge-fns-core/context.ts";
 
 // Template: transform
 // Usage: Pure data computation with no external dependencies
@@ -20,7 +20,10 @@ function transform(input: InputData): OutputData {
   return input as OutputData;
 }
 
-export default async function handler(req: Request, _ctx: Ctx): Promise<Response> {
+export default async function handler(
+  req: Request,
+  _ctx: Ctx,
+): Promise<Response> {
   if (req.method !== "POST") {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
   }

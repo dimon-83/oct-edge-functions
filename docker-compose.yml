@@ -7,7 +7,6 @@ services:
     container_name: oct-edge-functions-${DENO_ENV:-dev}
     ports:
       - "${HOST_PORT:-18080}:18080"
-    # 继承模式：先加载 .env，再用 .env.${DENO_ENV} 覆盖
     env_file:
       - .env
       - .env.${DENO_ENV:-dev}
@@ -20,3 +19,12 @@ services:
       - ./plugins:/app/plugins:ro
       - ./logs:/app/logs
     restart: unless-stopped
+    healthcheck:
+      test: [
+        "CMD-SHELL",
+        "deno eval \"fetch('http://localhost:18080/').catch(() => {}).then(r => Deno.exit(r && r.ok ? 0 : 1))\" || exit 1",
+      ]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3

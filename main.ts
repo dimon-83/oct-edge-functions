@@ -1,7 +1,5 @@
-import { HttpServer } from "./lib/server.ts";
+import { corsMiddlewares, HttpServer, loggingMiddlewares } from "./lib/mod.ts";
 import { authMiddlewares } from "./plugins/auth/index.ts";
-import { corsMiddlewares } from "./plugins/cors/index.ts";
-import { loggingMiddlewares } from "./plugins/logging/index.ts";
 
 const PORT = parseInt(Deno.env.get("PORT") ?? "8080");
 const DENO_ENV = Deno.env.get("DENO_ENV") ?? "development";

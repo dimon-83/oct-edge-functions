@@ -2,7 +2,7 @@ import type { Middleware } from "../../lib/middleware.ts";
 
 const corsOrigins = (Deno.env.get("CORS_ORIGIN") ?? "*")
   .split(",")
-  .map(s => s.trim())
+  .map((s) => s.trim())
   .filter(Boolean);
 
 const corsMethods = "GET, POST, PUT, PATCH, DELETE, OPTIONS";

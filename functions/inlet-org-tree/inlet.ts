@@ -97,7 +97,9 @@ export function buildInletOrgTree(flatNodes: FlatNode[]): TreeNode[] {
   return rootNodes;
 }
 
-export async function getInletOrgTree(client: PostgrestClient): Promise<TreeNode[]> {
+export async function getInletOrgTree(
+  client: PostgrestClient,
+): Promise<TreeNode[]> {
   const { data: flatNodes, error } = await client
     .schema("ia_csc")
     .from("v_inlet_plant_org_tree")

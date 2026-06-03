@@ -1,4 +1,9 @@
-export type FunctionStatus = "draft" | "testing" | "active" | "deprecated" | "archived";
+export type FunctionStatus =
+  | "draft"
+  | "testing"
+  | "active"
+  | "deprecated"
+  | "archived";
 
 export interface ChangelogEntry {
   version: string;

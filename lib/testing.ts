@@ -1,5 +1,5 @@
 import type { Ctx } from "./context.ts";
-import { AuthError, ValidationError, AppError } from "./context.ts";
+import { AppError, AuthError, ValidationError } from "./context.ts";
 
 // ------------------------------------------------------------------
 // Mock factories
@@ -23,6 +23,7 @@ export function createMockLogger(): MockLogger {
 
 export interface MockDb {
   from: (table: string) => MockQueryBuilder;
+  schema: (schema: string) => MockDb;
 }
 
 interface MockQueryBuilder {
@@ -41,23 +42,54 @@ export function createMockDb(
 ): MockDb {
   const emptyResult = { data: null, error: null };
 
-  const builder: MockQueryBuilder = {
-    select: (_columns?: string) => builder,
-    insert: (_values: unknown[]) => builder,
-    update: (_values: Record<string, unknown>) => builder,
-    delete: () => builder,
-    eq: (_column: string, _value: unknown) => builder,
-    order: (_column: string, _opts?: { ascending?: boolean }) => builder,
-    single: () => Promise.resolve(emptyResult),
-    schema: (_schema: string) => builder,
-  };
+  function createChildBuilder(
+    parentOverrides: Record<string, unknown>,
+  ): MockQueryBuilder & PromiseLike<{ data: unknown; error: unknown }> {
+    const b = {
+      select: (_columns?: string) => b,
+      insert: (_values: unknown[]) => b,
+      update: (_values: Record<string, unknown>) => b,
+      delete: () => b,
+      eq: (_column: string, _value: unknown) => b,
+      order: (_column: string, _opts?: { ascending?: boolean }) => b,
+      single: () =>
+        Promise.resolve(
+          "single" in parentOverrides
+            ? (parentOverrides.single as () => Promise<{
+              data: unknown;
+              error: unknown;
+            }>)()
+            : emptyResult,
+        ),
+      schema: (_schema: string) => b,
+      then: (
+        onfulfilled: (value: { data: unknown; error: unknown }) => unknown,
+      ) =>
+        Promise.resolve(
+          "data" in parentOverrides
+            ? { data: parentOverrides.data, error: null }
+            : emptyResult,
+        ).then(onfulfilled),
+    };
+    return b as
+      & MockQueryBuilder
+      & PromiseLike<{
+        data: unknown;
+        error: unknown;
+      }>;
+  }
 
   return {
-    from: (_table: string) => ({
-      ...builder,
-      ...overrides,
-    }),
-  } as MockDb;
+    from: (_table: string) => createChildBuilder(overrides),
+    schema: (_schema: string) =>
+      ({
+        from: (_table: string) => createChildBuilder(overrides),
+        schema: () => ({
+          from: (_t: string) => createChildBuilder(overrides),
+          schema: () => ({}) as MockDb,
+        }),
+      }) as MockDb,
+  } as unknown as MockDb;
 }
 
 export function createMockCtx(partial: Partial<Ctx> = {}): Ctx {
@@ -161,4 +193,4 @@ export function assertStatus(response: Response, expectedStatus: number): void {
 }
 
 // Re-export errors for test convenience
-export { AuthError, ValidationError, AppError };
+export { AppError, AuthError, ValidationError };

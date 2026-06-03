@@ -3,10 +3,10 @@
  * Embedded in the dev runtime. Disabled in prod.
  */
 
-import { createSession, getSession, deleteSession } from "./session.ts";
+import { createSession, deleteSession, getSession } from "./session.ts";
 import * as tools from "./tools.ts";
 import type { ToolResult } from "./types.ts";
-import { ToolRegistry, getDefaultRegistry } from "./registry.ts";
+import { getDefaultRegistry, ToolRegistry } from "./registry.ts";
 
 const MCP_VERSION = "2024-11-05";
 
@@ -33,7 +33,8 @@ function setupRegistry(): ToolRegistry {
 
   r.register({
     name: "list_functions",
-    description: "List all functions in the registry with their status and version",
+    description:
+      "List all functions in the registry with their status and version",
     inputSchema: { type: "object", properties: {} },
     handler: () => tools.listFunctions(),
   });
@@ -56,8 +57,15 @@ function setupRegistry(): ToolRegistry {
       type: "object",
       properties: {
         name: { type: "string", description: "Function name (directory name)" },
-        template: { type: "string", enum: ["crud", "query", "proxy", "transform"], description: "Code template to use" },
-        description: { type: "string", description: "Natural language description" },
+        template: {
+          type: "string",
+          enum: ["crud", "query", "proxy", "transform"],
+          description: "Code template to use",
+        },
+        description: {
+          type: "string",
+          description: "Natural language description",
+        },
         spec: {
           type: "object",
           properties: {
@@ -68,7 +76,15 @@ function setupRegistry(): ToolRegistry {
       },
       required: ["name", "template"],
     },
-    handler: (a) => tools.createFunction(a as { name: string; template: "crud" | "query" | "proxy" | "transform"; description?: string; spec?: Record<string, string> }),
+    handler: (a) =>
+      tools.createFunction(
+        a as {
+          name: string;
+          template: "crud" | "query" | "proxy" | "transform";
+          description?: string;
+          spec?: Record<string, string>;
+        },
+      ),
   });
 
   r.register({
@@ -87,7 +103,12 @@ function setupRegistry(): ToolRegistry {
     description: "Run tests for a function or all functions",
     inputSchema: {
       type: "object",
-      properties: { name: { type: "string", description: "Function name (omit to run all)" } },
+      properties: {
+        name: {
+          type: "string",
+          description: "Function name (omit to run all)",
+        },
+      },
     },
     handler: (a) => tools.runTests(a as { name?: string }),
   });
@@ -108,17 +129,29 @@ function setupRegistry(): ToolRegistry {
 
   r.register({
     name: "deploy_function",
-    description: "Deploy a function: run tests, bump version, set status to active",
+    description:
+      "Deploy a function: run tests, bump version, set status to active",
     inputSchema: {
       type: "object",
       properties: {
         name: { type: "string", description: "Function name" },
-        version_bump: { type: "string", enum: ["major", "minor", "patch"], description: "Semver bump type" },
+        version_bump: {
+          type: "string",
+          enum: ["major", "minor", "patch"],
+          description: "Semver bump type",
+        },
         reason: { type: "string", description: "Changelog reason" },
       },
       required: ["name", "version_bump"],
     },
-    handler: (a) => tools.deployFunction(a as { name: string; version_bump: "major" | "minor" | "patch"; reason?: string }),
+    handler: (a) =>
+      tools.deployFunction(
+        a as {
+          name: string;
+          version_bump: "major" | "minor" | "patch";
+          reason?: string;
+        },
+      ),
   });
 
   r.register({
@@ -156,7 +189,10 @@ function setupRegistry(): ToolRegistry {
     inputSchema: {
       type: "object",
       properties: {
-        schema: { type: "string", description: "Database schema (default: public)" },
+        schema: {
+          type: "string",
+          description: "Database schema (default: public)",
+        },
         table_name: { type: "string", description: "Table name" },
         columns: {
           type: "array",
@@ -171,13 +207,19 @@ function setupRegistry(): ToolRegistry {
               unique: { type: "boolean" },
               references: {
                 type: "object",
-                properties: { table: { type: "string" }, column: { type: "string" } },
+                properties: {
+                  table: { type: "string" },
+                  column: { type: "string" },
+                },
               },
             },
           },
           description: "Column definitions",
         },
-        if_not_exists: { type: "boolean", description: "Add IF NOT EXISTS clause" },
+        if_not_exists: {
+          type: "boolean",
+          description: "Add IF NOT EXISTS clause",
+        },
       },
       required: ["table_name", "columns"],
     },
@@ -190,11 +232,17 @@ function setupRegistry(): ToolRegistry {
     inputSchema: {
       type: "object",
       properties: {
-        schema: { type: "string", description: "Database schema (default: public)" },
+        schema: {
+          type: "string",
+          description: "Database schema (default: public)",
+        },
         view_name: { type: "string", description: "View name" },
         query: { type: "string", description: "SELECT query for the view" },
         or_replace: { type: "boolean", description: "Use CREATE OR REPLACE" },
-        materialized: { type: "boolean", description: "Create a materialized view" },
+        materialized: {
+          type: "boolean",
+          description: "Create a materialized view",
+        },
       },
       required: ["view_name", "query"],
     },
@@ -207,10 +255,19 @@ function setupRegistry(): ToolRegistry {
     inputSchema: {
       type: "object",
       properties: {
-        schema: { type: "string", description: "Database schema (default: public)" },
+        schema: {
+          type: "string",
+          description: "Database schema (default: public)",
+        },
         name: { type: "string", description: "Function/procedure name" },
-        language: { type: "string", description: "Language (default: plpgsql)" },
-        returns: { type: "string", description: "Return type (required for functions)" },
+        language: {
+          type: "string",
+          description: "Language (default: plpgsql)",
+        },
+        returns: {
+          type: "string",
+          description: "Return type (required for functions)",
+        },
         parameters: {
           type: "array",
           items: {
@@ -219,8 +276,15 @@ function setupRegistry(): ToolRegistry {
           },
           description: "Function parameters",
         },
-        body: { type: "string", description: "Function body (the $$ ... $$ content)" },
-        type: { type: "string", enum: ["function", "procedure"], description: "Routine type (default: function)" },
+        body: {
+          type: "string",
+          description: "Function body (the $$ ... $$ content)",
+        },
+        type: {
+          type: "string",
+          enum: ["function", "procedure"],
+          description: "Routine type (default: function)",
+        },
       },
       required: ["name", "body"],
     },
@@ -233,13 +297,29 @@ function setupRegistry(): ToolRegistry {
     inputSchema: {
       type: "object",
       properties: {
-        schema: { type: "string", description: "Database schema (default: public)" },
+        schema: {
+          type: "string",
+          description: "Database schema (default: public)",
+        },
         table_name: { type: "string", description: "Table name" },
         policy_name: { type: "string", description: "Policy name" },
-        operation: { type: "string", enum: ["ALL", "SELECT", "INSERT", "UPDATE", "DELETE"], description: "Operation type (default: ALL)" },
-        role: { type: "string", description: "Database role (default: public)" },
-        using_expression: { type: "string", description: "USING expression for the policy" },
-        with_check_expression: { type: "string", description: "WITH CHECK expression" },
+        operation: {
+          type: "string",
+          enum: ["ALL", "SELECT", "INSERT", "UPDATE", "DELETE"],
+          description: "Operation type (default: ALL)",
+        },
+        role: {
+          type: "string",
+          description: "Database role (default: public)",
+        },
+        using_expression: {
+          type: "string",
+          description: "USING expression for the policy",
+        },
+        with_check_expression: {
+          type: "string",
+          description: "WITH CHECK expression",
+        },
       },
       required: ["table_name", "policy_name"],
     },
@@ -255,8 +335,13 @@ const registry = setupRegistry();
 // Request handlers
 // ------------------------------------------------------------------
 
-async function handleToolCall(request: JsonRpcRequest): Promise<JsonRpcResponse> {
-  const { name, arguments: args = {} } = request.params as { name: string; arguments?: Record<string, unknown> };
+async function handleToolCall(
+  request: JsonRpcRequest,
+): Promise<JsonRpcResponse> {
+  const { name, arguments: args = {} } = request.params as {
+    name: string;
+    arguments?: Record<string, unknown>;
+  };
 
   const tool = registry.get(name);
   if (!tool) {
@@ -309,7 +394,9 @@ async function handleToolCall(request: JsonRpcRequest): Promise<JsonRpcResponse>
   };
 }
 
-async function handleRequest(request: JsonRpcRequest): Promise<JsonRpcResponse> {
+async function handleRequest(
+  request: JsonRpcRequest,
+): Promise<JsonRpcResponse> {
   switch (request.method) {
     case "initialize": {
       return {
@@ -353,7 +440,7 @@ async function handleRequest(request: JsonRpcRequest): Promise<JsonRpcResponse> 
 // HTTP handlers
 // ------------------------------------------------------------------
 
-export async function handleSseRequest(req: Request): Promise<Response> {
+export function handleSseRequest(_req: Request): Response {
   const session = createSession();
   console.log(`[MCP] SSE connection established, session_id: ${session.id}`);
 
@@ -361,9 +448,10 @@ export async function handleSseRequest(req: Request): Promise<Response> {
     start(controller) {
       // Store controller for later use (when sending notifications)
       session.controller = controller;
-      
+
       // Send endpoint event - some clients expect just the URI string
-      const endpointEvent = `event: endpoint\ndata: ${session.messageEndpoint}\n\n`;
+      const endpointEvent =
+        `event: endpoint\ndata: ${session.messageEndpoint}\n\n`;
       controller.enqueue(new TextEncoder().encode(endpointEvent));
       console.log(`[MCP] Sent endpoint event: ${session.messageEndpoint}`);
 
@@ -392,7 +480,9 @@ export async function handleSseRequest(req: Request): Promise<Response> {
 // Single endpoint: POST /mcp for JSON-RPC, GET /mcp for SSE stream
 // ------------------------------------------------------------------
 
-export async function handleStreamableHttpRequest(req: Request): Promise<Response> {
+export function handleStreamableHttpRequest(
+  req: Request,
+): Response | Promise<Response> {
   if (req.method === "GET") {
     return handleStreamableSseStream(req);
   }
@@ -402,13 +492,14 @@ export async function handleStreamableHttpRequest(req: Request): Promise<Respons
   return new Response("Method not allowed", { status: 405 });
 }
 
-async function handleStreamableSseStream(_req: Request): Promise<Response> {
+function handleStreamableSseStream(_req: Request): Response {
   const session = createSession();
 
   const body = new ReadableStream({
     start(controller) {
       session.controller = controller;
-      const endpointEvent = `event: endpoint\ndata: ${session.messageEndpoint}\n\n`;
+      const endpointEvent =
+        `event: endpoint\ndata: ${session.messageEndpoint}\n\n`;
       controller.enqueue(new TextEncoder().encode(endpointEvent));
     },
     cancel() {
@@ -439,13 +530,17 @@ async function handleStreamablePost(req: Request): Promise<Response> {
       if (wantsStream) {
         const stream = new ReadableStream({
           start(controller) {
-            const respEvent = `event: message\ndata: ${JSON.stringify(response)}\n\n`;
+            const respEvent = `event: message\ndata: ${
+              JSON.stringify(response)
+            }\n\n`;
             controller.enqueue(new TextEncoder().encode(respEvent));
 
-            const initNotification = `event: message\ndata: ${JSON.stringify({
-              jsonrpc: "2.0",
-              method: "notifications/initialized",
-            })}\n\n`;
+            const initNotification = `event: message\ndata: ${
+              JSON.stringify({
+                jsonrpc: "2.0",
+                method: "notifications/initialized",
+              })
+            }\n\n`;
             controller.enqueue(new TextEncoder().encode(initNotification));
 
             controller.close();
@@ -497,27 +592,39 @@ export async function handleMessageRequest(req: Request): Promise<Response> {
   const session = getSession(sessionId);
   if (!session) {
     console.log(`[MCP] Invalid or expired session: ${sessionId}`);
-    return Response.json({ error: "Invalid or expired session" }, { status: 400 });
+    return Response.json({ error: "Invalid or expired session" }, {
+      status: 400,
+    });
   }
 
   try {
     const body = await req.json();
     const request = body as JsonRpcRequest;
-    console.log(`[MCP] Received message: ${request.method}, session_id: ${sessionId}`);
-    
+    console.log(
+      `[MCP] Received message: ${request.method}, session_id: ${sessionId}`,
+    );
+
     const response = await handleRequest(request);
-    console.log(`[MCP] Sending response: ${JSON.stringify(response).substring(0, 200)}...`);
-    
+    console.log(
+      `[MCP] Sending response: ${
+        JSON.stringify(response).substring(0, 200)
+      }...`,
+    );
+
     // After successful initialize, send notifications/initialized via SSE
-    if (request.method === "initialize" && response.result && session.controller) {
-      const initNotification = `event: message\ndata: ${JSON.stringify({
-        jsonrpc: "2.0",
-        method: "notifications/initialized",
-      })}\n\n`;
+    if (
+      request.method === "initialize" && response.result && session.controller
+    ) {
+      const initNotification = `event: message\ndata: ${
+        JSON.stringify({
+          jsonrpc: "2.0",
+          method: "notifications/initialized",
+        })
+      }\n\n`;
       session.controller.enqueue(new TextEncoder().encode(initNotification));
       console.log(`[MCP] Sent notifications/initialized via SSE`);
     }
-    
+
     return Response.json(response, {
       headers: {
         "Access-Control-Allow-Origin": "*",
