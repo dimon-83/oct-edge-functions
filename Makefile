@@ -185,8 +185,13 @@ core-publish:
 	@echo "========================================"
 	@echo "发布 @oct-edge-fns/core v$(CORE_VERSION) 到 JSR"
 	@echo "========================================"
-	@if [ -z "$(JSR_TOKEN)" ]; then echo "错误: 请设置 JSR_TOKEN 环境变量"; exit 1; fi
-	cd lib && $(DENO) publish --token $(JSR_TOKEN) --config deno.json
+	@if [ -n "$(JSR_TOKEN)" ]; then \
+		echo "使用 JSR_TOKEN 发布"; \
+		cd lib && $(DENO) publish --token $(JSR_TOKEN) --config deno.json; \
+	else \
+		echo "未设置 JSR_TOKEN，将使用浏览器认证发布"; \
+		cd lib && $(DENO) publish --config deno.json; \
+	fi
 	@echo ""
 	@echo "✅ @oct-edge-fns/core v$(CORE_VERSION) 发布完成"
 	@echo "   用户引用方式:"

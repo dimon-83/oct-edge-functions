@@ -422,8 +422,9 @@ Agent: 调用 publish_to_prod
 # 检查发布内容
 make core-publish-check
 
-# 发布到 JSR（需要 JSR_TOKEN）
-export JSR_TOKEN="your_jsr_token"
+# 发布到 JSR（本地机器自动使用浏览器认证）
+# 可选：设置 JSR_TOKEN 可跳过浏览器交互
+# export JSR_TOKEN="your_jsr_token"
 make core-publish
 
 # 更新版本号并打 tag
