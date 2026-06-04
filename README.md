@@ -2,15 +2,15 @@
 
 轻量级 Deno Edge Functions 运行时，为"胖数据库"架构而生。
 
-![架构图](./docs/architecture.svg)
+![架构图](docs/architecture.svg)
 
 **核心理念**：以 PostgreSQL 为中心，通过 PostgREST 直接暴露数据库能力，
 边缘层仅处理轻量编排（认证、校验、聚合），避免引入 Supabase、Inngest 等
 重型中间件。提供 MCP 协议支持，让 AI Coding Agent 自动编写、测试、部署函数；
-配合可插拔插件系统和样板项目，通过 `npx create-oct-edge-fns my-project` 
+配合可插拔插件系统和样板项目，通过 `npx create-oct-edge-fns my-project`
 一键启动生产就绪的项目骨架。
 
----
+***
 
 ## 快速开始
 
@@ -53,7 +53,7 @@ make up ENV=prod
 
 生产环境 **不开启 MCP 服务**，仅暴露 HTTP API。
 
----
+***
 
 ## 项目结构
 
@@ -96,7 +96,7 @@ make up ENV=prod
 └── Makefile                # 快捷命令
 ```
 
----
+***
 
 ## 手动编写 Function
 
@@ -145,7 +145,7 @@ export default async function handler(
 - 数据库访问：`ctx.db`（PostgrestClient）
 - 日志：`ctx.log?.info/debug/error(message, meta)`
 
----
+***
 
 ## 认证架构
 
@@ -168,7 +168,7 @@ PGREST_JWT=your_pgrest_jwt_here
 
 中间件将 token 通过 `createClient()` 注入 `ctx.db`，所有函数请求共享此数据库凭证。
 
-> **⚠️ 警告：`PGREST_JWT` 仅用于开发环境。生产环境必须在 `plugins/auth/index.ts` 中替换为安全的认证实现。**
+> **⚠️ 警告：`PGREST_JWT`** **仅用于开发环境。生产环境必须在** **`plugins/auth/index.ts`** **中替换为安全的认证实现。**
 
 ### 生产环境自定义
 
@@ -201,7 +201,7 @@ class VaultTokenProvider implements PgrestTokenProvider {
 }
 ```
 
----
+***
 
 ## 测试
 
@@ -225,14 +225,14 @@ deno test --allow-all lib/middleware_test.ts
 
 核心库测试包含：
 
-| 模块       | 文件                          | 覆盖内容                                       |
-| ---------- | ----------------------------- | ---------------------------------------------- |
+| 模块         | 文件                            | 覆盖内容                                      |
+| ---------- | ----------------------------- | ----------------------------------------- |
 | context    | `lib/context_test.ts`         | 错误类（AuthError, ValidationError, AppError） |
-| middleware | `lib/middleware_test.ts`      | compose 编排、errorMiddleware 错误处理         |
-| testing    | `lib/testing_test.ts`         | Mock 工厂、HTTP 辅助、断言                     |
+| middleware | `lib/middleware_test.ts`      | compose 编排、errorMiddleware 错误处理           |
+| testing    | `lib/testing_test.ts`         | Mock 工厂、HTTP 辅助、断言                        |
 | pg         | `lib/pg_test.ts`              | SQL 安全检查、quoteIdent                       |
-| CORS       | `lib/plugins/cors_test.ts`    | 预检请求、CORS 头                              |
-| Logging    | `lib/plugins/logging_test.ts` | requestId、日志 ctx                            |
+| CORS       | `lib/plugins/cors_test.ts`    | 预检请求、CORS 头                               |
+| Logging    | `lib/plugins/logging_test.ts` | requestId、日志 ctx                          |
 
 ### 代码检查
 
@@ -250,7 +250,7 @@ make fmt
 deno fmt
 ```
 
----
+***
 
 ## MCP Agent 集成
 
@@ -386,36 +386,36 @@ Agent: 调用 publish_to_prod
 → 返回 tar 文件路径
 ```
 
----
+***
 
 ## Makefile 命令
 
-| 命令                 | 说明                     |
-| -------------------- | ------------------------ |
-| `make build`         | 构建 Docker 镜像         |
-| `make up`            | 启动服务                 |
-| `make down`          | 停止服务                 |
-| `make export`        | 导出镜像为 tar           |
-| `make logs`          | 查看日志                 |
-| `make dev`           | 本地 Deno 开发 (--watch) |
-| `make test`          | 运行测试                 |
-| `make test FILE=xxx` | 运行单个测试文件         |
-| `make lint`          | 代码检查                 |
-| `make fmt`           | 格式化代码               |
-| `make check`         | 类型检查 + lint (CI)     |
-| `make core-publish-check` | 检查 core 包 JSR 发布内容   |
-| `make core-publish`   | 发布 @oct-edge-fns/core 到 JSR |
-| `make core-version V=x.y.z` | 更新 core 包版号 |
-| `make core-link DIR=path` | 链接本地 lib/ 到目标项目的 import map |
-| `make core-unlink DIR=path` | 移除本地链接，恢复 JSR 引用 |
-| `make cli-pack`       | 打包 CLI 脚手架 npm tarball |
-| `make cli-publish`    | 发布 CLI 到 npm           |
-| `make cli-version V=x.y.z` | 更新 CLI 版号      |
-| `make publish-all`    | 全部发布 (core + CLI)     |
-| `make clean`          | 清理容器和镜像            |
-| `make status`         | 查看状态                  |
+| 命令                          | 说明                          |
+| --------------------------- | --------------------------- |
+| `make build`                | 构建 Docker 镜像                |
+| `make up`                   | 启动服务                        |
+| `make down`                 | 停止服务                        |
+| `make export`               | 导出镜像为 tar                   |
+| `make logs`                 | 查看日志                        |
+| `make dev`                  | 本地 Deno 开发 (--watch)        |
+| `make test`                 | 运行测试                        |
+| `make test FILE=xxx`        | 运行单个测试文件                    |
+| `make lint`                 | 代码检查                        |
+| `make fmt`                  | 格式化代码                       |
+| `make check`                | 类型检查 + lint (CI)            |
+| `make core-publish-check`   | 检查 core 包 JSR 发布内容          |
+| `make core-publish`         | 发布 @oct-edge-fns/core 到 JSR |
+| `make core-version V=x.y.z` | 更新 core 包版号                 |
+| `make core-link DIR=path`   | 链接本地 lib/ 到目标项目的 import map |
+| `make core-unlink DIR=path` | 移除本地链接，恢复 JSR 引用            |
+| `make cli-pack`             | 打包 CLI 脚手架 npm tarball      |
+| `make cli-publish`          | 发布 CLI 到 npm                |
+| `make cli-version V=x.y.z`  | 更新 CLI 版号                   |
+| `make publish-all`          | 全部发布 (core + CLI)           |
+| `make clean`                | 清理容器和镜像                     |
+| `make status`               | 查看状态                        |
 
----
+***
 
 ## 发布
 
@@ -439,6 +439,7 @@ make core-version V=0.2.0
 ```
 
 用户引用方式：
+
 ```json
 {
   "imports": {
@@ -468,23 +469,23 @@ make cli-version V=0.2.0
 make publish-all CORE_VERSION=0.1.0 CLI_VERSION=0.1.0
 ```
 
----
+***
 
 ## 环境变量
 
-| 变量              | 默认值                  | 说明                                      |
-| ----------------- | ----------------------- | ----------------------------------------- |
-| `DENO_ENV`        | `development`           | `development` 开启 MCP，`production` 关闭 |
-| `PORT`            | `18080`                 | 服务端口                                  |
-| `FUNCTIONS_DIR`   | `./functions`           | 函数目录                                  |
-| `PGREST_URL`      | `http://localhost:3000` | PostgREST 地址                            |
-| `PGREST_SCHEMA`   | `public`                | 数据库 schema                             |
-| `PGREST_JWT`      | -                       | PostgREST JWT（开发环境，不可用于生产）       |
-| `CORS_ORIGIN`     | `*`                     | 跨域来源                                  |
-| `LOG_LEVEL`       | `info`                  | 日志级别                                  |
-| `LOG_DIR`         | `./logs`                | 日志目录                                  |
+| 变量              | 默认值                     | 说明                                   |
+| --------------- | ----------------------- | ------------------------------------ |
+| `DENO_ENV`      | `development`           | `development` 开启 MCP，`production` 关闭 |
+| `PORT`          | `18080`                 | 服务端口                                 |
+| `FUNCTIONS_DIR` | `./functions`           | 函数目录                                 |
+| `PGREST_URL`    | `http://localhost:3000` | PostgREST 地址                         |
+| `PGREST_SCHEMA` | `public`                | 数据库 schema                           |
+| `PGREST_JWT`    | -                       | PostgREST JWT（开发环境，不可用于生产）           |
+| `CORS_ORIGIN`   | `*`                     | 跨域来源                                 |
+| `LOG_LEVEL`     | `info`                  | 日志级别                                 |
+| `LOG_DIR`       | `./logs`                | 日志目录                                 |
 
----
+***
 
 ## Docker 部署
 
@@ -508,7 +509,7 @@ docker compose up -d
 - **HEALTHCHECK**：容器健康检查，每 30s 检测 / 端点
 - **非 root 运行**：使用 `deno` 用户运行
 
----
+***
 
 ## HTTP API 文档
 
@@ -526,9 +527,9 @@ docker compose up -d
 
 **Query 参数**:
 
-| 参数 | 类型   | 必填 | 说明                  |
-| ---- | ------ | ---- | --------------------- |
-| `id` | string | 否   | 用户 ID，传入则查单个 |
+| 参数   | 类型     | 必填 | 说明           |
+| ---- | ------ | -- | ------------ |
+| `id` | string | 否  | 用户 ID，传入则查单个 |
 
 **响应示例**:
 
@@ -545,13 +546,13 @@ docker compose up -d
 
 **状态码**:
 
-| 状态码 | 说明     |
-| ------ | -------- |
-| 200    | 成功     |
-| 400    | 查询错误 |
-| 401    | 未授权   |
+| 状态码 | 说明   |
+| --- | ---- |
+| 200 | 成功   |
+| 400 | 查询错误 |
+| 401 | 未授权  |
 
----
+***
 
 #### POST /users
 
@@ -576,13 +577,13 @@ docker compose up -d
 
 **状态码**:
 
-| 状态码 | 说明     |
-| ------ | -------- |
-| 201    | 创建成功 |
-| 400    | 参数错误 |
-| 401    | 未授权   |
+| 状态码 | 说明   |
+| --- | ---- |
+| 201 | 创建成功 |
+| 400 | 参数错误 |
+| 401 | 未授权  |
 
----
+***
 
 #### PATCH /users
 
@@ -590,9 +591,9 @@ docker compose up -d
 
 **Query 参数**:
 
-| 参数 | 类型   | 必填 | 说明    |
-| ---- | ------ | ---- | ------- |
-| `id` | string | 是   | 用户 ID |
+| 参数   | 类型     | 必填 | 说明    |
+| ---- | ------ | -- | ----- |
+| `id` | string | 是  | 用户 ID |
 
 **请求体**:
 
@@ -612,13 +613,13 @@ docker compose up -d
 
 **状态码**:
 
-| 状态码 | 说明              |
-| ------ | ----------------- |
-| 200    | 更新成功          |
-| 400    | 参数错误或缺少 id |
-| 401    | 未授权            |
+| 状态码 | 说明         |
+| --- | ---------- |
+| 200 | 更新成功       |
+| 400 | 参数错误或缺少 id |
+| 401 | 未授权        |
 
----
+***
 
 #### DELETE /users
 
@@ -626,9 +627,9 @@ docker compose up -d
 
 **Query 参数**:
 
-| 参数 | 类型   | 必填 | 说明    |
-| ---- | ------ | ---- | ------- |
-| `id` | string | 是   | 用户 ID |
+| 参数   | 类型     | 必填 | 说明    |
+| ---- | ------ | -- | ----- |
+| `id` | string | 是  | 用户 ID |
 
 **响应示例**:
 
@@ -640,13 +641,13 @@ docker compose up -d
 
 **状态码**:
 
-| 状态码 | 说明     |
-| ------ | -------- |
-| 200    | 删除成功 |
-| 400    | 缺少 id  |
-| 401    | 未授权   |
+| 状态码 | 说明    |
+| --- | ----- |
+| 200 | 删除成功  |
+| 400 | 缺少 id |
+| 401 | 未授权   |
 
----
+***
 
 #### GET /inlet-org-tree
 
@@ -687,13 +688,13 @@ docker compose up -d
 
 **状态码**:
 
-| 状态码 | 说明       |
-| ------ | ---------- |
-| 200    | 成功       |
-| 401    | 未授权     |
-| 500    | 服务器错误 |
+| 状态码 | 说明    |
+| --- | ----- |
+| 200 | 成功    |
+| 401 | 未授权   |
+| 500 | 服务器错误 |
 
----
+***
 
 ### 通用错误响应
 
@@ -703,24 +704,24 @@ docker compose up -d
 }
 ```
 
-| HTTP 状态码 | 场景                         |
-| ----------- | ---------------------------- |
-| 400         | 请求参数错误、数据库操作失败 |
-| 401         | 缺少或无效 Authorization     |
-| 404         | 路由不存在                   |
-| 405         | HTTP 方法不允许              |
-| 500         | 服务器内部错误               |
+| HTTP 状态码 | 场景                  |
+| -------- | ------------------- |
+| 400      | 请求参数错误、数据库操作失败      |
+| 401      | 缺少或无效 Authorization |
+| 404      | 路由不存在               |
+| 405      | HTTP 方法不允许          |
+| 500      | 服务器内部错误             |
 
----
+***
 
 ### MCP Endpoints（Dev Only）
 
-| 端点                          | 方法 | 说明                           |
-| ----------------------------- | ---- | ------------------------------ |
-| `/mcp/sse`                    | GET  | 建立 SSE 会话，返回 session_id |
+| 端点                            | 方法   | 说明                       |
+| ----------------------------- | ---- | ------------------------ |
+| `/mcp/sse`                    | GET  | 建立 SSE 会话，返回 session\_id |
 | `/mcp/message?session_id=xxx` | POST | 发送 JSON-RPC 请求调用 tool    |
 
----
+***
 
 ## 架构决策
 
@@ -728,3 +729,4 @@ docker compose up -d
 
 - [ADR-0001: MCP 集成](docs/adr/0001-mcp-integration.md)
 - [ADR-0002: 函数注册表](docs/adr/0002-functions-registry.md)
+
