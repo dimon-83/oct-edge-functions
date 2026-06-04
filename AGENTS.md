@@ -2,7 +2,8 @@
 
 ## Project Overview
 
-Deno-based edge function runtime with MCP (Model Context Protocol) integration for AI coding agents.
+Deno-based edge function runtime with MCP (Model Context Protocol) integration
+for AI coding agents.
 
 ## Architecture
 
@@ -25,15 +26,15 @@ Deno-based edge function runtime with MCP (Model Context Protocol) integration f
 
 ## Key Files
 
-| File | Purpose |
-|------|---------|
-| `main.ts` | Entry point. Loads functions, mounts routes, conditionally enables MCP |
-| `functions.json` | Function registry — status, version, changelog |
-| `lib/mcp/server.ts` | MCP SSE server implementation |
-| `lib/mcp/tools.ts` | MCP tool implementations (CRUD for functions) |
-| `lib/mcp/session.ts` | In-memory session management |
-| `lib/testing.ts` | Test scaffolding for agent-generated tests |
-| `lib/templates/*.ts` | Code templates: crud, query, proxy, transform |
+| File                 | Purpose                                                                |
+| -------------------- | ---------------------------------------------------------------------- |
+| `main.ts`            | Entry point. Loads functions, mounts routes, conditionally enables MCP |
+| `functions.json`     | Function registry — status, version, changelog                         |
+| `lib/mcp/server.ts`  | MCP SSE server implementation                                          |
+| `lib/mcp/tools.ts`   | MCP tool implementations (CRUD for functions)                          |
+| `lib/mcp/session.ts` | In-memory session management                                           |
+| `lib/testing.ts`     | Test scaffolding for agent-generated tests                             |
+| `lib/templates/*.ts` | Code templates: crud, query, proxy, transform                          |
 
 ## Environment
 
@@ -44,18 +45,18 @@ Deno-based edge function runtime with MCP (Model Context Protocol) integration f
 
 ## MCP Tools (Dev Only)
 
-| Tool | Description |
-|------|-------------|
-| `list_functions` | List all functions with status/version |
-| `get_function` | Get function metadata + source code |
-| `create_function` | Create from template (crud/query/proxy/transform) |
-| `write_tests` | Generate test scaffold |
-| `run_tests` | Execute Deno tests |
-| `update_function` | Update source code (with lint check) |
-| `deploy_function` | Run tests, bump semver, set active |
-| `disable_function` | Set status to deprecated |
-| `delete_function` | Set status to archived (soft delete) |
-| `publish_to_prod` | Validate + build prod Docker image |
+| Tool               | Description                                       |
+| ------------------ | ------------------------------------------------- |
+| `list_functions`   | List all functions with status/version            |
+| `get_function`     | Get function metadata + source code               |
+| `create_function`  | Create from template (crud/query/proxy/transform) |
+| `write_tests`      | Generate test scaffold                            |
+| `run_tests`        | Execute Deno tests                                |
+| `update_function`  | Update source code (with lint check)              |
+| `deploy_function`  | Run tests, bump semver, set active                |
+| `disable_function` | Set status to deprecated                          |
+| `delete_function`  | Set status to archived (soft delete)              |
+| `publish_to_prod`  | Validate + build prod Docker image                |
 
 ## Function Lifecycle
 

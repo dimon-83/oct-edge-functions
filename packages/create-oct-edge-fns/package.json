@@ -1,0 +1,30 @@
+{
+  "name": "create-oct-edge-fns",
+  "version": "0.1.0",
+  "description": "Scaffold a new oct-edge-functions project — edge function runtime powered by Deno",
+  "keywords": [
+    "deno",
+    "edge-functions",
+    "serverless",
+    "scaffold",
+    "mcp"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/oct-edge-functions.git"
+  },
+  "license": "MIT",
+  "bin": {
+    "create-oct-edge-fns": "./index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "index.js",
+    "example/"
+  ],
+  "dependencies": {
+    "commander": "^12.0.0"
+  }
+}

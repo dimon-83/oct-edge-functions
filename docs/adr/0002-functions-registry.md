@@ -6,11 +6,13 @@ Accepted
 
 ## Context
 
-Function lifecycle management requires tracking status, versions, and history. We need a lightweight solution that doesn't depend on external services.
+Function lifecycle management requires tracking status, versions, and history.
+We need a lightweight solution that doesn't depend on external services.
 
 ## Decision
 
-Use a JSON file (`functions.json`) as the function registry with built-in changelog:
+Use a JSON file (`functions.json`) as the function registry with built-in
+changelog:
 
 ```json
 {
@@ -37,13 +39,13 @@ Use a JSON file (`functions.json`) as the function registry with built-in change
 
 ### Lifecycle States
 
-| State | Meaning |
-|-------|---------|
-| `draft` | Code exists, tests incomplete |
-| `testing` | Tests written, running verification |
-| `active` | Tests passed, mounted as endpoint |
-| `deprecated` | Previously active, now offline |
-| `archived` | Permanently offline, candidate for cleanup |
+| State        | Meaning                                    |
+| ------------ | ------------------------------------------ |
+| `draft`      | Code exists, tests incomplete              |
+| `testing`    | Tests written, running verification        |
+| `active`     | Tests passed, mounted as endpoint          |
+| `deprecated` | Previously active, now offline             |
+| `archived`   | Permanently offline, candidate for cleanup |
 
 ### Versioning
 
@@ -54,12 +56,14 @@ Use a JSON file (`functions.json`) as the function registry with built-in change
 ## Consequences
 
 ### Positive
+
 - No external dependency
 - Git-tracked for audit
 - Human-readable
 - Simple to backup/restore
 
 ### Negative
+
 - File-level locking on concurrent writes (mitigated: single dev instance)
 - No query capability (mitigated: small dataset, in-memory on load)
 

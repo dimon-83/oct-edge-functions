@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 860" width="100%" height="100vh" preserveAspectRatio="xMidYMid meet" style="background:#0a0e1a;font-family:'Inter',system-ui,-apple-system,sans-serif;">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap');
+      .t{font-family:'Inter',system-ui,sans-serif;}
+      .ti{font-size:26px;font-weight:800;fill:#f0f2fa;letter-spacing:0.06em;text-anchor:middle;}
+      .ts{font-size:13px;font-weight:500;fill:rgba(180,195,240,0.7);text-anchor:middle;}
+      .h2{font-size:13px;font-weight:700;fill:#f0f2fa;letter-spacing:0.08em;text-anchor:middle;text-transform:uppercase;}
+      .sub{font-size:11px;font-weight:400;fill:rgba(180,195,240,0.6);text-anchor:middle;}
+      .body{font-size:11px;font-weight:400;fill:rgba(180,195,240,0.65);text-anchor:middle;}
+      .biz{font-size:12px;font-weight:600;fill:#00e5ff;text-anchor:middle;}
+      .bizs{font-size:10px;font-weight:400;fill:rgba(180,195,240,0.55);text-anchor:middle;}
+    </style>
+    <filter id="gc"><feGaussianBlur stdDeviation="5"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="gg"><feGaussianBlur stdDeviation="5"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="gp"><feGaussianBlur stdDeviation="5"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="go"><feGaussianBlur stdDeviation="5"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0a0e1a"/><stop offset="50%" stop-color="#0d1130"/><stop offset="100%" stop-color="#0a0e1a"/></linearGradient>
+  </defs>
+  <rect width="1200" height="860" fill="url(#bg)"/>
+
+  <!-- ========== CONSTANTS ========== -->
+  <!-- Frame: x=100, w=760, right=860. TUI/MCP/AI: each ~253px wide -->
+
+  <!-- ==================== TITLE ==================== -->
+  <g transform="translate(480,18)">
+    <text class="t ti" x="0" y="16" opacity="0"><animate attributeName="opacity" to="1" dur="0.6s" fill="freeze"/>OCT EDGE FUNCTIONS</text>
+    <text class="t ts" x="0" y="38" opacity="0"><animate attributeName="opacity" to="1" dur="0.5s" begin="0.3s" fill="freeze"/>边缘函数运行时 以 PostgreSQL 为中心的架构</text>
+  </g>
+
+  <!-- ==================== LAYER 0: SCALABLE PROJECTS (y:50-118) ==================== -->
+  <text class="t h2" x="480" y="72" fill="#00e5ff" font-size="10px" opacity="0">
+    <animate attributeName="opacity" to="0.8" dur="0.4s" begin="0.1s" fill="freeze"/>Scalable Projects
+  </text>
+
+  <g transform="translate(100,70)">
+    <!-- 电商 -->
+    <rect width="120" height="40" rx="6" fill="rgba(0,229,255,0.05)" stroke="rgba(0,229,255,0.3)" stroke-width="1" opacity="0"><animate attributeName="opacity" to="1" dur="0.35s" begin="0.2s" fill="freeze"/></rect>
+    <text class="t biz" x="60" y="17" font-size="11px" opacity="0"><animate attributeName="opacity" to="1" dur="0.3s" begin="0.4s" fill="freeze"/>电商零售</text>
+    <text class="t bizs" x="60" y="31" opacity="0"><animate attributeName="opacity" to="1" dur="0.3s" begin="0.5s" fill="freeze"/>商城 · 订单 · 支付</text>
+
+    <!-- 社交 -->
+    <g transform="translate(128,0)">
+      <rect width="120" height="40" rx="6" fill="rgba(0,229,255,0.05)" stroke="rgba(0,229,255,0.3)" stroke-width="1" opacity="0"><animate attributeName="opacity" to="1" dur="0.35s" begin="0.3s" fill="freeze"/></rect>
+      <text class="t biz" x="60" y="17" font-size="11px" opacity="0"><animate attributeName="opacity" to="1" dur="0.3s" begin="0.5s" fill="freeze"/>社交网络</text>
+      <text class="t bizs" x="60" y="31" opacity="0"><animate attributeName="opacity" to="1" dur="0.3s" begin="0.6s" fill="freeze"/>IM · 动态 · 社区</text>
+    </g>
+
+    <!-- 物联网 -->
+    <g transform="translate(256,0)">
+      <rect width="120" height="40" rx="6" fill="rgba(0,229,255,0.05)" stroke="rgba(0,229,255,0.3)" stroke-width="1" opacity="0"><animate attributeName="opacity" to="1" dur="0.35s" begin="0.4s" fill="freeze"/></rect>
+      <text class="t biz" x="60" y="17" font-size="11px" opacity="0"><animate attributeName="opacity" to="1" dur="0.3s" begin="0.6s" fill="freeze"/>物联网</text>
+      <text class="t bizs" x="60" y="31" opacity="0"><animate attributeName="opacity" to="1" dur="0.3s" begin="0.7s" fill="freeze"/>设备 · 采集 · 监控</text>
+    </g>
+
+    <!-- 金融 -->
+    <g transform="translate(384,0)">
+      <rect width="120" height="40" rx="6" fill="rgba(0,229,255,0.05)" stroke="rgba(0,229,255,0.3)" stroke-width="1" opacity="0"><animate attributeName="opacity" to="1" dur="0.35s" begin="0.5s" fill="freeze"/></rect>
+      <text class="t biz" x="60" y="17" font-size="11px" opacity="0"><animate attributeName="opacity" to="1" dur="0.3s" begin="0.7s" fill="freeze"/>金融科技</text>
+      <text class="t bizs" x="60" y="31" opacity="0"><animate attributeName="opacity" to="1" dur="0.3s" begin="0.8s" fill="freeze"/>交易 · 风控 · 结算</text>
+    </g>
+
+    <!-- 教育 -->
+    <g transform="translate(512,0)">
+      <rect width="120" height="40" rx="6" fill="rgba(0,229,255,0.05)" stroke="rgba(0,229,255,0.3)" stroke-width="1" opacity="0"><animate attributeName="opacity" to="1" dur="0.35s" begin="0.6s" fill="freeze"/></rect>
+      <text class="t biz" x="60" y="17" font-size="11px" opacity="0"><animate attributeName="opacity" to="1" dur="0.3s" begin="0.8s" fill="freeze"/>在线教育</text>
+      <text class="t bizs" x="60" y="31" opacity="0"><animate attributeName="opacity" to="1" dur="0.3s" begin="0.9s" fill="freeze"/>课程 · 直播 · 考试</text>
+    </g>
+
+    <!-- 医疗 -->
+    <g transform="translate(640,0)">
+      <rect width="120" height="40" rx="6" fill="rgba(0,229,255,0.05)" stroke="rgba(0,229,255,0.3)" stroke-width="1" opacity="0"><animate attributeName="opacity" to="1" dur="0.35s" begin="0.7s" fill="freeze"/></rect>
+      <text class="t biz" x="60" y="17" font-size="11px" opacity="0"><animate attributeName="opacity" to="1" dur="0.3s" begin="0.9s" fill="freeze"/>智慧医疗</text>
+      <text class="t bizs" x="60" y="31" opacity="0"><animate attributeName="opacity" to="1" dur="0.3s" begin="1s" fill="freeze"/>问诊 · 处方 · 健康</text>
+    </g>
+  </g>
+
+  <!-- Divider -->
+  <line x1="100" y1="118" x2="860" y2="118" stroke="rgba(0,229,255,0.1)" stroke-width="1"/>
+
+  <!-- ==================== LAYER 1: TUI + MCP(on line) + AI (y:122-214) ==================== -->
+  <!-- DEVELOP TUI (240px wide) -->
+  <g transform="translate(100,122)">
+    <rect width="240" height="92" rx="10" fill="rgba(255,158,66,0.07)" stroke="#ff9e42" stroke-width="1.5" opacity="0"><animate attributeName="opacity" to="1" dur="0.5s" begin="0.4s" fill="freeze"/></rect>
+    <rect width="240" height="92" rx="10" fill="none" stroke="#ff9e42" stroke-width="2" filter="url(#go)" opacity="0"><animate attributeName="opacity" values="0.1;0.4;0.1" dur="3s" repeatCount="indefinite" begin="1.5s"/></rect>
+    <text class="t" x="30" y="32" font-size="20" font-weight="700" fill="#ff9e42" opacity="0"><animate attributeName="opacity" to="1" dur="0.4s" begin="0.7s" fill="freeze"/>&gt;_</text>
+    <text class="t h2" x="135" y="28" fill="#f0f2fa" font-size="13px" opacity="0"><animate attributeName="opacity" to="1" dur="0.4s" begin="0.8s" fill="freeze"/>DEVELOP TUI</text>
+    <text class="t sub" x="135" y="48" opacity="0"><animate attributeName="opacity" to="1" dur="0.4s" begin="0.9s" fill="freeze"/>npx create-oct-edge-fns my-project</text>
+    <text class="t sub" x="135" y="64" fill="rgba(255,158,66,0.45)" font-size="10px" opacity="0"><animate attributeName="opacity" to="1" dur="0.4s" begin="1s" fill="freeze"/>CLI-driven development experience</text>
+  </g>
+
+  <!-- MCP PROTOCOL label on the connecting line (no box) -->
+  <text class="t" x="480" y="170" font-size="11" font-weight="700" fill="#b967ff" text-anchor="middle" letter-spacing="0.08em" opacity="0"><animate attributeName="opacity" to="1" dur="0.4s" begin="0.9s" fill="freeze"/>MCP PROTOCOL</text>
+  <text class="t" x="480" y="184" font-size="9" font-weight="400" fill="rgba(185,103,255,0.5)" text-anchor="middle" opacity="0"><animate attributeName="opacity" to="1" dur="0.4s" begin="1s" fill="freeze"/>Model Context Protocol</text>
+
+  <!-- AI AGENT (240px wide) -->
+  <g transform="translate(620,122)">
+    <rect width="240" height="92" rx="10" fill="rgba(185,103,255,0.06)" stroke="#b967ff" stroke-width="1.5" opacity="0"><animate attributeName="opacity" to="1" dur="0.5s" begin="0.6s" fill="freeze"/></rect>
+    <rect width="240" height="92" rx="10" fill="none" stroke="#b967ff" stroke-width="2" filter="url(#gp)" opacity="0"><animate attributeName="opacity" values="0.1;0.4;0.1" dur="3s" repeatCount="indefinite" begin="2s"/></rect>
+    <circle cx="32" cy="32" r="14" fill="none" stroke="#b967ff" stroke-width="1.5" opacity="0"><animate attributeName="opacity" to="0.7" dur="0.4s" begin="1s" fill="freeze"/></circle>
+    <circle cx="32" cy="32" r="6" fill="#b967ff" opacity="0"><animate attributeName="opacity" to="0.5" dur="0.4s" begin="1.2s" fill="freeze"/></circle>
+    <text class="t h2" x="135" y="28" fill="#b967ff" font-size="13px" opacity="0"><animate attributeName="opacity" to="1" dur="0.4s" begin="1s" fill="freeze"/>AI CODING AGENT</text>
+    <text class="t sub" x="135" y="48" fill="rgba(185,103,255,0.65)" opacity="0"><animate attributeName="opacity" to="1" dur="0.4s" begin="1.1s" fill="freeze"/>Auto Write &#183; Test &#183; Deploy</text>
+    <text class="t sub" x="135" y="64" fill="rgba(185,103,255,0.4)" font-size="10px" opacity="0"><animate attributeName="opacity" to="1" dur="0.4s" begin="1.2s" fill="freeze"/>Powered by MCP</text>
+  </g>
+
+  <!-- MCP bidirectional particles on lines between TUI and AI -->
+  <g>
+    <!-- TUI → AI via MCP line -->
+    <circle r="3" fill="#b967ff" filter="url(#gp)" opacity="0">
+      <animateMotion dur="1.2s" repeatCount="indefinite" begin="2s" path="M340,168 L620,168"/><animate attributeName="opacity" values="0;1;0" dur="1.2s" repeatCount="indefinite" begin="2s"/>
+    </circle>
+    <circle r="2.5" fill="#b967ff" opacity="0">
+      <animateMotion dur="1.4s" repeatCount="indefinite" begin="2.8s" path="M620,175 L340,175"/><animate attributeName="opacity" values="0;0.8;0" dur="1.4s" repeatCount="indefinite" begin="2.8s"/>
+    </circle>
+    <!-- Connecting lines -->
+    <line x1="340" y1="168" x2="620" y2="168" stroke="#b967ff" stroke-width="1" stroke-dasharray="4,3" opacity="0.3"/>
+  </g>
+
+  <!-- Connector to Runtime -->
+  <line x1="480" y1="214" x2="480" y2="248" stroke="rgba(0,229,255,0.2)" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <circle r="2.5" fill="#00e5ff" filter="url(#gc)" opacity="0">
+    <animateMotion dur="1.5s" repeatCount="indefinite" begin="2.5s" path="M480,214 L480,248"/><animate attributeName="opacity" values="0;1;0" dur="1.5s" repeatCount="indefinite" begin="2.5s"/>
+  </circle>
+
+  <!-- ==================== LAYER 2: RUNTIME (y:248-445, compact) ==================== -->
+  <g>
+    <rect x="100" y="248" width="760" height="195" rx="12" fill="rgba(0,229,255,0.04)" stroke="#00e5ff" stroke-width="1.5" opacity="0"><animate attributeName="opacity" to="1" dur="0.5s" begin="0.8s" fill="freeze"/></rect>
+    <rect x="100" y="248" width="760" height="195" rx="12" fill="none" stroke="#00e5ff" stroke-width="2" filter="url(#gc)" opacity="0"><animate attributeName="opacity" values="0;0.15;0" dur="4s" repeatCount="indefinite" begin="2s"/></rect>
+    <text class="t h2" x="480" y="272" fill="#00e5ff" font-size="18px" opacity="0"><animate attributeName="opacity" to="1" dur="0.4s" begin="1.1s" fill="freeze"/>OCT-EDGE FUNCTIONS RUNTIME</text>
+    <text class="t sub" x="480" y="290" opacity="0"><animate attributeName="opacity" to="1" dur="0.4s" begin="1.2s" fill="freeze"/>Deno Deploy Edge  Lightweight Orchestration</text>
+
+    <g transform="translate(116,300)">
+      <rect width="172" height="130" rx="8" fill="rgba(0,229,255,0.06)" stroke="rgba(0,229,255,0.3)" stroke-width="1"/>
+      <text class="t h2" x="86" y="24" fill="#00e5ff" font-size="12px">AUTH</text>
+      <text class="t body" x="86" y="46">JWT Verification</text>
+      <text class="t body" x="86" y="62">OAuth 2.0 / OIDC</text>
+      <text class="t body" x="86" y="78">Session Management</text>
+      <text class="t body" x="86" y="94">API Key Auth</text>
+      <text class="t body" x="86" y="110">Webhook Verify</text>
+      <rect width="172" height="130" rx="8" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0"><animate attributeName="opacity" values="0;0.3;0" dur="3s" repeatCount="indefinite" begin="2.5s"/></rect>
+    </g>
+    <g transform="translate(300,300)">
+      <rect width="172" height="130" rx="8" fill="rgba(0,229,255,0.06)" stroke="rgba(0,229,255,0.3)" stroke-width="1"/>
+      <text class="t h2" x="86" y="24" fill="#00e5ff" font-size="12px">VALIDATE</text>
+      <text class="t body" x="86" y="46">Zod Schema Check</text>
+      <text class="t body" x="86" y="62">Header Inspection</text>
+      <text class="t body" x="86" y="78">Input Sanitization</text>
+      <text class="t body" x="86" y="94">Rate Limiting</text>
+      <text class="t body" x="86" y="110">CORS Handling</text>
+      <rect width="172" height="130" rx="8" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0"><animate attributeName="opacity" values="0;0.3;0" dur="3s" repeatCount="indefinite" begin="3s"/></rect>
+    </g>
+    <g transform="translate(484,300)">
+      <rect width="172" height="130" rx="8" fill="rgba(0,229,255,0.06)" stroke="rgba(0,229,255,0.3)" stroke-width="1"/>
+      <text class="t h2" x="86" y="24" fill="#00e5ff" font-size="12px">ORCHESTRATE</text>
+      <text class="t body" x="86" y="46">Edge Functions</text>
+      <text class="t body" x="86" y="62">Request Routing</text>
+      <text class="t body" x="86" y="78">Aggregation Logic</text>
+      <text class="t body" x="86" y="94">Middleware Chain</text>
+      <text class="t body" x="86" y="110">Error Handling</text>
+      <rect width="172" height="130" rx="8" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0"><animate attributeName="opacity" values="0;0.3;0" dur="3s" repeatCount="indefinite" begin="3.5s"/></rect>
+    </g>
+    <g transform="translate(668,300)">
+      <rect width="176" height="130" rx="8" fill="rgba(255,83,112,0.06)" stroke="rgba(255,83,112,0.35)" stroke-width="1"/>
+      <text class="t h2" x="88" y="24" fill="#ff5370" font-size="12px">PLUGINS</text>
+      <text class="t body" x="88" y="46">Pluggable System</text>
+      <text class="t body" x="88" y="62">Middleware Hooks</text>
+      <text class="t body" x="88" y="78">Custom Extensions</text>
+      <text class="t body" x="88" y="94">Third-party Integ.</text>
+      <text class="t body" x="88" y="110">Hot-pluggable</text>
+      <rect width="176" height="130" rx="8" fill="none" stroke="#ff5370" stroke-width="1.5" opacity="0"><animate attributeName="opacity" values="0;0.3;0" dur="3s" repeatCount="indefinite" begin="4s"/></rect>
+    </g>
+  </g>
+
+  <!-- ==================== RUNTIME ↔ POSTGREST (bidirectional) ==================== -->
+  <g>
+    <line x1="480" y1="443" x2="480" y2="480" stroke="rgba(0,229,255,0.25)" stroke-width="2" stroke-dasharray="6,4"/>
+    <circle r="3" fill="#00e5ff" filter="url(#gc)" opacity="0">
+      <animateMotion dur="1.2s" repeatCount="indefinite" begin="3s" path="M480,443 L480,480"/><animate attributeName="opacity" values="0;1;0" dur="1.2s" repeatCount="indefinite" begin="3s"/>
+    </circle>
+    <circle r="2.5" fill="#00e5ff" opacity="0">
+      <animateMotion dur="1.4s" repeatCount="indefinite" begin="3.7s" path="M480,480 L480,443"/><animate attributeName="opacity" values="0;0.8;0" dur="1.4s" repeatCount="indefinite" begin="3.7s"/>
+    </circle>
+  </g>
+
+  <!-- ==================== LAYER 3: POSTGREST (y:480-548, compact) ==================== -->
+  <g>
+    <rect x="100" y="480" width="760" height="68" rx="10" fill="rgba(0,229,255,0.04)" stroke="#00e5ff" stroke-width="1.5" opacity="0"><animate attributeName="opacity" to="1" dur="0.5s" begin="1.1s" fill="freeze"/></rect>
+    <rect x="100" y="480" width="760" height="68" rx="10" fill="none" stroke="#00e5ff" stroke-width="2" filter="url(#gc)" opacity="0"><animate attributeName="opacity" values="0;0.1;0" dur="4s" repeatCount="indefinite" begin="2.5s"/></rect>
+    <text class="t h2" x="480" y="505" fill="#00e5ff" font-size="18px" opacity="0"><animate attributeName="opacity" to="1" dur="0.4s" begin="1.4s" fill="freeze"/>POSTGREST</text>
+    <text class="t sub" x="480" y="525" opacity="0"><animate attributeName="opacity" to="1" dur="0.4s" begin="1.5s" fill="freeze"/>数据库即 API  无需 ORM  无后端层  纯 SQL 即接口</text>
+  </g>
+
+  <!-- ==================== POSTGREST ↔ POSTGRESQL (bidirectional) ==================== -->
+  <g>
+    <line x1="480" y1="548" x2="480" y2="585" stroke="rgba(0,230,118,0.3)" stroke-width="2.5" stroke-dasharray="6,4"/>
+    <circle r="4" fill="#00e676" filter="url(#gg)" opacity="0">
+      <animateMotion dur="1s" repeatCount="indefinite" begin="3.5s" path="M480,548 L480,585"/><animate attributeName="opacity" values="0;1;0" dur="1s" repeatCount="indefinite" begin="3.5s"/>
+    </circle>
+    <circle r="3" fill="#00e676" opacity="0">
+      <animateMotion dur="1.2s" repeatCount="indefinite" begin="4.2s" path="M480,585 L480,548"/><animate attributeName="opacity" values="0;0.8;0" dur="1.2s" repeatCount="indefinite" begin="4.2s"/>
+    </circle>
+  </g>
+
+  <!-- ==================== LAYER 4: POSTGRESQL (y:585-850, compact) ==================== -->
+  <g>
+    <rect x="100" y="585" width="760" height="265" rx="12" fill="rgba(0,230,118,0.04)" stroke="#00e676" stroke-width="2" opacity="0"><animate attributeName="opacity" to="1" dur="0.5s" begin="1.3s" fill="freeze"/></rect>
+    <rect x="100" y="585" width="760" height="265" rx="12" fill="none" stroke="#00e676" stroke-width="3" filter="url(#gg)" opacity="0"><animate attributeName="opacity" values="0;0.12;0" dur="4s" repeatCount="indefinite" begin="3s"/></rect>
+
+    <ellipse cx="130" cy="604" rx="10" ry="6" fill="none" stroke="#00e676" stroke-width="1.5" opacity="0"><animate attributeName="opacity" to="0.6" dur="0.4s" begin="1.8s" fill="freeze"/></ellipse>
+    <path d="M120,604 L120,614 Q130,620 140,614 L140,604" fill="none" stroke="#00e676" stroke-width="1.5" opacity="0"><animate attributeName="opacity" to="0.6" dur="0.4s" begin="1.9s" fill="freeze"/></path>
+    <path d="M120,609 Q130,615 140,609" fill="none" stroke="#00e676" stroke-width="1.5" opacity="0"><animate attributeName="opacity" to="0.6" dur="0.4s" begin="2s" fill="freeze"/></path>
+
+    <text class="t h2" x="480" y="608" fill="#00e676" font-size="18px" opacity="0"><animate attributeName="opacity" to="1" dur="0.4s" begin="1.6s" fill="freeze"/>POSTGRESQL</text>
+    <text class="t sub" x="480" y="626" opacity="0"><animate attributeName="opacity" to="1" dur="0.4s" begin="1.7s" fill="freeze"/>核心业务逻辑承载者</text>
+
+    <g transform="translate(116,638)">
+      <rect width="172" height="200" rx="8" fill="rgba(0,230,118,0.06)" stroke="rgba(0,230,118,0.3)" stroke-width="1"/>
+      <text class="t h2" x="86" y="24" fill="#00e676" font-size="12px">FUNCTIONS</text>
+      <text class="t body" x="86" y="46">PL/pgSQL</text>
+      <text class="t body" x="86" y="62">pg_tle Extensions</text>
+      <text class="t body" x="86" y="78">Business Logic</text>
+      <text class="t body" x="86" y="94">Stored Procedures</text>
+      <text class="t body" x="86" y="110">Custom Aggregates</text>
+      <text class="t body" x="86" y="126">pgSQL Triggers</text>
+      <text class="t body" x="86" y="142">SQL Functions</text>
+      <rect width="172" height="200" rx="8" fill="none" stroke="#00e676" stroke-width="1.5" opacity="0"><animate attributeName="opacity" values="0;0.25;0" dur="4s" repeatCount="indefinite" begin="3.2s"/></rect>
+    </g>
+    <g transform="translate(300,638)">
+      <rect width="172" height="200" rx="8" fill="rgba(0,230,118,0.06)" stroke="rgba(0,230,118,0.3)" stroke-width="1"/>
+      <text class="t h2" x="86" y="24" fill="#00e676" font-size="12px">RLS</text>
+      <text class="t body" x="86" y="46">Row Level Security</text>
+      <text class="t body" x="86" y="62">Policy Definitions</text>
+      <text class="t body" x="86" y="78">Auth &#8594; Data Rules</text>
+      <text class="t body" x="86" y="94">Granular Access</text>
+      <text class="t body" x="86" y="110">Multi-tenant Isolation</text>
+      <text class="t body" x="86" y="126">Dynamic Policies</text>
+      <text class="t body" x="86" y="142">User-based Filters</text>
+      <rect width="172" height="200" rx="8" fill="none" stroke="#00e676" stroke-width="1.5" opacity="0"><animate attributeName="opacity" values="0;0.25;0" dur="4s" repeatCount="indefinite" begin="3.6s"/></rect>
+    </g>
+    <g transform="translate(484,638)">
+      <rect width="172" height="200" rx="8" fill="rgba(0,230,118,0.06)" stroke="rgba(0,230,118,0.3)" stroke-width="1"/>
+      <text class="t h2" x="86" y="24" fill="#00e676" font-size="12px">TRIGGERS</text>
+      <text class="t body" x="86" y="46">pgcrypto</text>
+      <text class="t body" x="86" y="62">Audit Logging</text>
+      <text class="t body" x="86" y="78">Event-driven Flows</text>
+      <text class="t body" x="86" y="94">Change Notifications</text>
+      <text class="t body" x="86" y="110">Auto-validation</text>
+      <text class="t body" x="86" y="126">Real-time Events</text>
+      <text class="t body" x="86" y="142">pg_logical Decoding</text>
+      <rect width="172" height="200" rx="8" fill="none" stroke="#00e676" stroke-width="1.5" opacity="0"><animate attributeName="opacity" values="0;0.25;0" dur="4s" repeatCount="indefinite" begin="4s"/></rect>
+    </g>
+    <g transform="translate(668,638)">
+      <rect width="176" height="200" rx="8" fill="rgba(0,230,118,0.06)" stroke="rgba(0,230,118,0.3)" stroke-width="1"/>
+      <text class="t h2" x="88" y="24" fill="#00e676" font-size="12px">EXTENSIONS</text>
+      <text class="t body" x="88" y="46">pgvector</text>
+      <text class="t body" x="88" y="62">TimescaleDB</text>
+      <text class="t body" x="88" y="78">PostGIS / Full Text</text>
+      <text class="t body" x="88" y="94">pg_graphql</text>
+      <text class="t body" x="88" y="110">pg_net / http</text>
+      <text class="t body" x="88" y="126">pg_cron Scheduler</text>
+      <text class="t body" x="88" y="142">pg_stat_statements</text>
+      <rect width="176" height="200" rx="8" fill="none" stroke="#00e676" stroke-width="1.5" opacity="0"><animate attributeName="opacity" values="0;0.25;0" dur="4s" repeatCount="indefinite" begin="4.4s"/></rect>
+    </g>
+  </g>
+
+</svg>

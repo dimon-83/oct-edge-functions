@@ -1,4 +1,4 @@
-import { Pool } from "npm:pg@^8";
+import { Pool } from "pg";
 
 export class PgClient {
   #pool: Pool | null = null;
@@ -13,8 +13,8 @@ export class PgClient {
       if (!this.#databaseUrl) {
         throw new Error(
           "DATABASE_URL environment variable is required for pg_* tools. " +
-          "Set it to a PostgreSQL connection string, e.g.: " +
-          "postgresql://user:password@host:5432/database",
+            "Set it to a PostgreSQL connection string, e.g.: " +
+            "postgresql://user:password@host:5432/database",
         );
       }
       this.#pool = new Pool({ connectionString: this.#databaseUrl });
@@ -43,9 +43,12 @@ export class PgClient {
   }
 }
 
-const defaultClient = new PgClient();
+const defaultClient: PgClient = new PgClient();
 
-export const executeSql = defaultClient.executeSql.bind(defaultClient);
+export const executeSql: (
+  sql: string,
+) => Promise<{ rows: Record<string, unknown>[]; rowCount: number | null }> =
+  defaultClient.executeSql.bind(defaultClient);
 
 export function quoteIdent(id: string): string {
   return `"${id.replace(/"/g, '""')}"`;
@@ -86,7 +89,9 @@ export function checkRoutineBody(body: string): SafetyCheck {
     if (m) {
       return {
         safe: false,
-        reason: `Dangerous SQL detected in function body: '${m[0]}' is not allowed. Destructive operations (DROP, TRUNCATE, ALTER SYSTEM, privilege changes, admin operations) are strictly prohibited.`,
+        reason: `Dangerous SQL detected in function body: '${
+          m[0]
+        }' is not allowed. Destructive operations (DROP, TRUNCATE, ALTER SYSTEM, privilege changes, admin operations) are strictly prohibited.`,
       };
     }
   }
@@ -98,7 +103,8 @@ export function checkViewQuery(query: string): SafetyCheck {
   if (!/^(WITH\s+(RECURSIVE\s+)?|SELECT\s+)/i.test(trimmed)) {
     return {
       safe: false,
-      reason: "View query must start with SELECT or WITH (CTE). This restriction prevents non-read-only operations.",
+      reason:
+        "View query must start with SELECT or WITH (CTE). This restriction prevents non-read-only operations.",
     };
   }
   const cleaned = stripComments(query);
@@ -107,7 +113,9 @@ export function checkViewQuery(query: string): SafetyCheck {
     if (m) {
       return {
         safe: false,
-        reason: `Dangerous SQL detected in view query: '${m[0]}' is not allowed in a view definition.`,
+        reason: `Dangerous SQL detected in view query: '${
+          m[0]
+        }' is not allowed in a view definition.`,
       };
     }
   }
@@ -118,12 +126,18 @@ export function checkColumnType(type: string): SafetyCheck {
   if (!ALLOWED_TYPES_RE.test(type.trim())) {
     return {
       safe: false,
-      reason: `Invalid column type: '${type}'. Column type must be a valid PostgreSQL type name (e.g. INTEGER, VARCHAR(100), TIMESTAMPTZ).`,
+      reason:
+        `Invalid column type: '${type}'. Column type must be a valid PostgreSQL type name (e.g. INTEGER, VARCHAR(100), TIMESTAMPTZ).`,
     };
   }
   const cleaned = stripComments(type);
   for (const p of DANGEROUS_PATTERNS) {
-    if (p.test(cleaned)) return { safe: false, reason: `Dangerous pattern in column type: '${type}'` };
+    if (p.test(cleaned)) {
+      return {
+        safe: false,
+        reason: `Dangerous pattern in column type: '${type}'`,
+      };
+    }
   }
   return { safe: true };
 }
@@ -135,7 +149,9 @@ export function checkDefaultValue(value: string): SafetyCheck {
     if (m) {
       return {
         safe: false,
-        reason: `Dangerous SQL detected in DEFAULT value: '${m[0]}' is not allowed.`,
+        reason: `Dangerous SQL detected in DEFAULT value: '${
+          m[0]
+        }' is not allowed.`,
       };
     }
   }
@@ -149,7 +165,9 @@ export function checkPolicyExpression(expr: string): SafetyCheck {
     if (m) {
       return {
         safe: false,
-        reason: `Dangerous SQL detected in policy expression: '${m[0]}' is not allowed.`,
+        reason: `Dangerous SQL detected in policy expression: '${
+          m[0]
+        }' is not allowed.`,
       };
     }
   }

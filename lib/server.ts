@@ -9,8 +9,8 @@ import { compose, errorMiddleware } from "./middleware.ts";
 import type { Middleware } from "./middleware.ts";
 
 import {
-  handleSseRequest,
   handleMessageRequest,
+  handleSseRequest,
   handleStreamableHttpRequest,
 } from "./mcp/server.ts";
 import { loadRegistry } from "./mcp/tools.ts";
@@ -62,10 +62,18 @@ export class HttpServer {
         .map((f) => f.name),
     );
 
-    for await (const entry of walk(functionsDir, { exts: [".ts", ".js"], includeDirs: false })) {
+    for await (
+      const entry of walk(functionsDir, {
+        exts: [".ts", ".js"],
+        includeDirs: false,
+      })
+    ) {
       const relativePath = entry.path.slice(functionsDir.length);
 
-      if (!relativePath.endsWith("/index.ts") && !relativePath.endsWith("/index.js")) {
+      if (
+        !relativePath.endsWith("/index.ts") &&
+        !relativePath.endsWith("/index.js")
+      ) {
         continue;
       }
 
@@ -86,12 +94,15 @@ export class HttpServer {
         const mod: FunctionModule = await import(toFileUrl(entry.path).href);
         const rawHandler = mod.default ?? mod.handler;
         if (typeof rawHandler === "function") {
-          const wrapped: Middleware = async (req, ctx, _next) => rawHandler(req, ctx);
+          const wrapped: Middleware = (req, ctx, _next) =>
+            rawHandler(req, ctx) as Response | Promise<Response>;
           const pipeline = compose([errorMiddleware, ...this.plugins, wrapped]);
           routes.set(routePath, pipeline);
           console.log(`  [${routePath}] -> ${entry.path}`);
         } else {
-          console.warn(`  [${routePath}] -> missing default export or named handler export`);
+          console.warn(
+            `  [${routePath}] -> missing default export or named handler export`,
+          );
         }
       } catch (err) {
         console.error(`  [${routePath}] -> load error: ${err}`);
@@ -106,7 +117,10 @@ export class HttpServer {
     const cleaned = url.pathname.replace(/\/$/, "") || "/";
 
     if (this.mcpEnabled) {
-      if (req.method === "OPTIONS" && (cleaned === "/mcp/sse" || cleaned === "/mcp/message")) {
+      if (
+        req.method === "OPTIONS" &&
+        (cleaned === "/mcp/sse" || cleaned === "/mcp/message")
+      ) {
         return new Response(null, {
           status: 204,
           headers: {
@@ -130,7 +144,9 @@ export class HttpServer {
         const matched = this.routes.get(prefix);
         if (matched) return await matched(req);
       }
-      return Response.json({ error: "Not Found", path: url.pathname }, { status: 404 });
+      return Response.json({ error: "Not Found", path: url.pathname }, {
+        status: 404,
+      });
     }
 
     return await pipeline(req);
@@ -143,22 +159,33 @@ export class HttpServer {
     this.routes = await this.loadRoutes();
 
     if (this.mcpEnabled) {
-      console.log(`\n[MCP] SSE endpoint: http://${this.hostname}:${this.port}/mcp/sse`);
-      console.log(`[MCP] Message endpoint: http://${this.hostname}:${this.port}/mcp/message?session_id=<id>`);
+      console.log(
+        `\n[MCP] SSE endpoint: http://${this.hostname}:${this.port}/mcp/sse`,
+      );
+      console.log(
+        `[MCP] Message endpoint: http://${this.hostname}:${this.port}/mcp/message?session_id=<id>`,
+      );
     }
 
-    console.log(`\noct-edge-functions running on http://${this.hostname}:${this.port}\n`);
+    console.log(
+      `\noct-edge-functions running on http://${this.hostname}:${this.port}\n`,
+    );
 
     this.abortController = new AbortController();
     Deno.serve(
-      { port: this.port, hostname: this.hostname, signal: this.abortController.signal },
+      {
+        port: this.port,
+        hostname: this.hostname,
+        signal: this.abortController.signal,
+      },
       (req) => this.handleRequest(req),
     );
   }
 
-  async stop(): Promise<void> {
+  stop(): Promise<void> {
     this.abortController?.abort();
     this.started = false;
+    return Promise.resolve();
   }
 
   async getRoutes(): Promise<Map<string, Pipeline>> {

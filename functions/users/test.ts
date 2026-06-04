@@ -1,4 +1,4 @@
-import { runHandler, assertStatus } from "../../lib/testing.ts";
+import { assertStatus, runHandler } from "../../lib/testing.ts";
 import handler from "./index.ts";
 
 Deno.test("users - should handle GET", async () => {

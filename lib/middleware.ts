@@ -1,5 +1,5 @@
 import type { Ctx } from "./context.ts";
-import { AuthError, ValidationError, AppError } from "./context.ts";
+import { AppError, AuthError, ValidationError } from "./context.ts";
 
 export type Middleware = (
   req: Request,
@@ -7,7 +7,9 @@ export type Middleware = (
   next: () => Promise<Response>,
 ) => Response | Promise<Response>;
 
-export function compose(middlewares: Middleware[]): (req: Request) => Promise<Response> {
+export function compose(
+  middlewares: Middleware[],
+): (req: Request) => Promise<Response> {
   return (req: Request) => {
     const ctx: Ctx = {};
     let index = -1;

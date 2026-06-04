@@ -1,5 +1,5 @@
-import { AppError } from "@oct/context.ts";
-import type { Ctx } from "@oct/context.ts";
+import { AppError } from "@oct-edge-fns-core/context.ts";
+import type { Ctx } from "@oct-edge-fns-core/context.ts";
 
 // Template: proxy
 // Usage: Forward requests to an external service
@@ -7,7 +7,10 @@ import type { Ctx } from "@oct/context.ts";
 
 const UPSTREAM_URL = "{{UPSTREAM_URL}}";
 
-export default async function handler(req: Request, _ctx: Ctx): Promise<Response> {
+export default async function handler(
+  req: Request,
+  _ctx: Ctx,
+): Promise<Response> {
   if (!UPSTREAM_URL || UPSTREAM_URL === "{{UPSTREAM_URL}}") {
     throw new AppError("UPSTREAM_URL is not configured");
   }

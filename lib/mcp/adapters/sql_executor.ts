@@ -21,7 +21,7 @@ export class MockSqlExecutor implements SqlExecutor {
     this.result = { rows: [], rowCount: null, ...overrides };
   }
 
-  async execute(_sql: string): Promise<QueryResult> {
-    return this.result;
+  execute(_sql: string): Promise<QueryResult> {
+    return Promise.resolve(this.result);
   }
 }

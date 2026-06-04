@@ -16,7 +16,8 @@ export class MakeBuildService implements BuildService {
     });
 
     const { code, stdout, stderr } = await cmd.output();
-    const output = new TextDecoder().decode(stdout) + "\n" + new TextDecoder().decode(stderr);
+    const output = new TextDecoder().decode(stdout) + "\n" +
+      new TextDecoder().decode(stderr);
 
     return { success: code === 0, output };
   }
@@ -29,7 +30,7 @@ export class MockBuildService implements BuildService {
     this.result = { success: true, output: "", ...overrides };
   }
 
-  async buildProd(): Promise<BuildResult> {
-    return this.result;
+  buildProd(): Promise<BuildResult> {
+    return Promise.resolve(this.result);
   }
 }
