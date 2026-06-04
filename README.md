@@ -1,7 +1,14 @@
 # Oct Edge Functions
 
-Deno 驱动的边缘函数运行时，支持 AI Coding Agent 通过 MCP
-协议自动编写、测试、部署函数。
+轻量级 Deno Edge Functions 运行时，为"胖数据库"架构而生。
+
+![架构图](./docs/architecture.svg)
+
+**核心理念**：以 PostgreSQL 为中心，通过 PostgREST 直接暴露数据库能力，
+边缘层仅处理轻量编排（认证、校验、聚合），避免引入 Supabase、Inngest 等
+重型中间件。提供 MCP 协议支持，让 AI Coding Agent 自动编写、测试、部署函数；
+配合可插拔插件系统和样板项目，通过 `npx create-oct-edge-fns my-project` 
+一键启动生产就绪的项目骨架。
 
 ---
 
