@@ -1,0 +1,351 @@
+#!/usr/bin/env node
+
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+import fs from "node:fs";
+import { execSync } from "node:child_process";
+import prompts from "prompts";
+import { cyan, yellow, green, red, reset, dim } from "kolorist";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const TEMPLATES = [
+  {
+    name: "default",
+    display: "Default",
+    color: cyan,
+    description: "Standard Oct Edge Functions project with all features",
+  },
+  {
+    name: "minimal",
+    display: "Minimal",
+    color: yellow,
+    description: "Bare minimum setup, no sample functions",
+  },
+];
+
+const HELPERS = [
+  { name: "docker", display: "Docker + Docker Compose", color: cyan, checked: true },
+  { name: "mcp", display: "MCP Server (Dev)", color: green, checked: true },
+  { name: "auth", display: "Auth Plugin", color: yellow, checked: true },
+  { name: "cors", display: "CORS Plugin", color: reset, checked: true },
+  { name: "logging", display: "Logging Plugin", color: cyan, checked: true },
+];
+
+function printBanner() {
+  console.log();
+  console.log(`${cyan("◆")}  ${cyan("create-oct-edge-fns")}  ${dim("v1.0.0")}`);
+  console.log(`${cyan("|")}`);
+}
+
+function printHelp() {
+  printBanner();
+  console.log(`${cyan("|")}  ${green("Usage:")}`);
+  console.log(`${cyan("|")}    npm create oct-edge-fns@latest [project-name] [options]`);
+  console.log(`${cyan("|")}`);
+  console.log(`${cyan("|")}  ${green("Options:")}`);
+  console.log(`${cyan("|")}    -t, --template <name>     Template: default | minimal (default: default)`);
+  console.log(`${cyan("|")}    --no-docker               Skip Docker setup`);
+  console.log(`${cyan("|")}    --no-mcp                  Skip MCP server`);
+  console.log(`${cyan("|")}    --no-auth                 Skip auth plugin`);
+  console.log(`${cyan("|")}    --no-cors                 Skip CORS plugin`);
+  console.log(`${cyan("|")}    --no-logging              Skip logging plugin`);
+  console.log(`${cyan("|")}    --all                     Include all features`);
+  console.log(`${cyan("|")}    -y, --yes                 Skip prompts, use defaults`);
+  console.log(`${cyan("|")}    -h, --help                Show this help`);
+  console.log(`${cyan("|")}`);
+  console.log(`${cyan("|")}  ${green("Examples:")}`);
+  console.log(`${cyan("|")}    npm create oct-edge-fns@latest my-app`);
+  console.log(`${cyan("|")}    npm create oct-edge-fns@latest my-app -t minimal --no-docker`);
+  console.log(`${cyan("|")}    npm create oct-edge-fns@latest my-app -y`);
+  console.log();
+}
+
+function parseArgs() {
+  const args = process.argv.slice(2);
+  const result = {
+    projectName: null,
+    template: "default",
+    helpers: null, // null = interactive, [] = none, [...] = specific
+    yes: false,
+    help: false,
+  };
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+
+    if (arg === "-h" || arg === "--help") {
+      result.help = true;
+      return result;
+    }
+
+    if (arg === "-y" || arg === "--yes") {
+      result.yes = true;
+      continue;
+    }
+
+    if (arg === "-t" || arg === "--template") {
+      result.template = args[++i];
+      continue;
+    }
+
+    if (arg === "--all") {
+      result.helpers = HELPERS.map((h) => h.name);
+      continue;
+    }
+
+    if (arg.startsWith("--no-")) {
+      const helperName = arg.slice(5);
+      if (HELPERS.some((h) => h.name === helperName)) {
+        if (result.helpers === null) result.helpers = HELPERS.map((h) => h.name);
+        result.helpers = result.helpers.filter((h) => h !== helperName);
+      }
+      continue;
+    }
+
+    if (!arg.startsWith("-")) {
+      result.projectName = arg;
+    }
+  }
+
+  return result;
+}
+
+async function main() {
+  const args = parseArgs();
+
+  if (args.help) {
+    printHelp();
+    process.exit(0);
+  }
+
+  printBanner();
+
+  let targetDir = args.projectName;
+
+  // Interactive: ask for project name
+  if (!targetDir) {
+    const result = await prompts(
+      {
+        type: "text",
+        name: "projectName",
+        message: `${cyan("?")}  Project name:`,
+        initial: "my-edge-functions",
+        validate: (value) => value.trim().length > 0 || "Project name is required",
+      },
+      {
+        onCancel: () => {
+          console.log(`${red("✖")}  Operation cancelled`);
+          process.exit(0);
+        },
+      }
+    );
+    targetDir = result.projectName.trim();
+  }
+
+  const root = path.resolve(targetDir);
+
+  // Check if directory exists and is not empty
+  if (fs.existsSync(root) && fs.readdirSync(root).length > 0) {
+    const { overwrite } = await prompts(
+      {
+        type: "confirm",
+        name: "overwrite",
+        message: `${yellow("!")}  Directory "${targetDir}" is not empty. Overwrite?`,
+        initial: false,
+      },
+      {
+        onCancel: () => {
+          console.log(`${red("✖")}  Operation cancelled`);
+          process.exit(0);
+        },
+      }
+    );
+    if (!overwrite) {
+      console.log(`${red("✖")}  Operation cancelled`);
+      process.exit(0);
+    }
+    fs.rmSync(root, { recursive: true });
+  }
+
+  fs.mkdirSync(root, { recursive: true });
+  console.log(`${cyan("|")}`);
+
+  // Template selection
+  let template = args.template;
+  if (!args.yes && !TEMPLATES.find((t) => t.name === template)) {
+    const result = await prompts(
+      {
+        type: "select",
+        name: "template",
+        message: `${cyan("?")}  Select a template:`,
+        choices: TEMPLATES.map((t) => ({
+          title: t.color(t.display),
+          value: t.name,
+          description: t.description,
+        })),
+      },
+      {
+        onCancel: () => {
+          console.log(`${red("✖")}  Operation cancelled`);
+          process.exit(0);
+        },
+      }
+    );
+    template = result.template;
+  }
+
+  console.log(`${cyan("|")}`);
+
+  // Helper selection
+  let helpers = args.helpers;
+  if (!args.yes && helpers === null) {
+    const result = await prompts(
+      {
+        type: "multiselect",
+        name: "helpers",
+        message: `${cyan("?")}  Select features:`,
+        choices: HELPERS.map((h) => ({
+          title: h.color(h.display),
+          value: h.name,
+          selected: h.checked,
+        })),
+        instructions: false,
+        hint: "- Space to select. Return to submit",
+      },
+      {
+        onCancel: () => {
+          console.log(`${red("✖")}  Operation cancelled`);
+          process.exit(0);
+        },
+      }
+    );
+    helpers = result.helpers || [];
+  } else if (helpers === null) {
+    helpers = HELPERS.filter((h) => h.checked).map((h) => h.name);
+  }
+
+  console.log(`${cyan("|")}`);
+
+  // Copy template files
+  const templateDir = path.join(__dirname, "..", "template");
+  copyDir(templateDir, root, { template, helpers });
+
+  // Rename gitignore
+  const gitignoreSrc = path.join(root, "_gitignore");
+  const gitignoreDest = path.join(root, ".gitignore");
+  if (fs.existsSync(gitignoreSrc)) {
+    fs.renameSync(gitignoreSrc, gitignoreDest);
+  }
+
+  // Process template variables
+  processTemplate(root, { projectName: path.basename(root), helpers });
+
+  // Remove unselected plugins
+  const pluginMap = {
+    auth: "plugins/auth",
+    cors: "plugins/cors",
+    logging: "plugins/logging",
+  };
+  for (const [helper, dir] of Object.entries(pluginMap)) {
+    if (!helpers.includes(helper)) {
+      const pluginDir = path.join(root, dir);
+      if (fs.existsSync(pluginDir)) {
+        fs.rmSync(pluginDir, { recursive: true });
+      }
+    }
+  }
+
+  // Minimal template: remove sample functions
+  if (template === "minimal") {
+    const functionsDir = path.join(root, "functions");
+    if (fs.existsSync(functionsDir)) {
+      fs.rmSync(functionsDir, { recursive: true });
+    }
+    fs.mkdirSync(functionsDir, { recursive: true });
+
+    // Write empty functions.json
+    fs.writeFileSync(
+      path.join(root, "functions.json"),
+      JSON.stringify({ functions: [] }, null, 2) + "\n"
+    );
+  }
+
+  // Print success
+  console.log(`${green("✔")}  Project created in ${cyan(root)}`);
+  console.log(`${cyan("|")}`);
+  console.log(`${cyan("◆")}  ${green("Next steps:")}`);
+  console.log(`${cyan("|")}`);
+  console.log(`${cyan("|")}  cd ${targetDir}`);
+
+  if (helpers.includes("docker")) {
+    console.log(`${cyan("|")}  docker compose up -d`);
+    console.log(`${cyan("|")}`);
+    console.log(`${cyan("|")}  HTTP API: http://localhost:18080`);
+    if (helpers.includes("mcp")) {
+      console.log(`${cyan("|")}  MCP SSE:  http://localhost:18080/mcp/sse`);
+    }
+  } else {
+    console.log(`${cyan("|")}  deno task start`);
+    console.log(`${cyan("|")}`);
+    console.log(`${cyan("|")}  HTTP API: http://localhost:8080`);
+    if (helpers.includes("mcp")) {
+      console.log(`${cyan("|")}  MCP SSE:  http://localhost:8080/mcp/sse`);
+    }
+  }
+
+  console.log(`${cyan("|")}`);
+  console.log(`${cyan("◆")}  ${green("Happy coding!")}`);
+  console.log();
+}
+
+function copyDir(srcDir, destDir, options) {
+  const { template, helpers } = options;
+
+  fs.mkdirSync(destDir, { recursive: true });
+
+  for (const file of fs.readdirSync(srcDir)) {
+    const srcFile = path.resolve(srcDir, file);
+    const destFile = path.resolve(destDir, file);
+
+    const stat = fs.statSync(srcFile);
+
+    if (stat.isDirectory()) {
+      copyDir(srcFile, destFile, options);
+    } else {
+      fs.copyFileSync(srcFile, destFile);
+    }
+  }
+}
+
+function processTemplate(dir, vars) {
+  const files = fs.readdirSync(dir);
+
+  for (const file of files) {
+    const filePath = path.join(dir, file);
+    const stat = fs.statSync(filePath);
+
+    if (stat.isDirectory()) {
+      processTemplate(filePath, vars);
+    } else if (
+      file.endsWith(".ts") ||
+      file.endsWith(".json") ||
+      file.endsWith(".yml") ||
+      file.endsWith(".md") ||
+      file.endsWith(".sh") ||
+      file.endsWith(".env") ||
+      file.endsWith("Dockerfile") ||
+      file === "Makefile"
+    ) {
+      let content = fs.readFileSync(filePath, "utf-8");
+      content = content.replace(/\{\{PROJECT_NAME\}\}/g, vars.projectName);
+      fs.writeFileSync(filePath, content);
+    }
+  }
+}
+
+main().catch((err) => {
+  console.error(red(err.message));
+  process.exit(1);
+});

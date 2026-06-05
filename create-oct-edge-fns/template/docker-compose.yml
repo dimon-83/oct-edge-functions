@@ -1,0 +1,22 @@
+services:
+  oct-edge-functions:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: oct-edge-functions:${IMAGE_TAG:-latest}
+    container_name: oct-edge-functions-${DENO_ENV:-dev}
+    ports:
+      - "${HOST_PORT:-18080}:18080"
+    # 继承模式：先加载 .env，再用 .env.${DENO_ENV} 覆盖
+    env_file:
+      - .env
+      - .env.${DENO_ENV:-dev}
+    environment:
+      - PORT=18080
+      - DENO_ENV=${DENO_ENV:-development}
+    volumes:
+      - ./functions:/app/functions
+      - ./functions.json:/app/functions.json
+      - ./plugins:/app/plugins:ro
+      - ./logs:/app/logs
+    restart: unless-stopped
