@@ -6,7 +6,7 @@ services:
     image: oct-edge-functions:${IMAGE_TAG:-latest}
     container_name: oct-edge-functions-${DENO_ENV:-dev}
     ports:
-      - "${HOST_PORT:-18080}:18080"
+      - "${HOST_PORT:-{{PORT_DEV}}}:18080"
     # 继承模式：先加载 .env，再用 .env.${DENO_ENV} 覆盖
     env_file:
       - .env

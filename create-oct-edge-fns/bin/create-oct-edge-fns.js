@@ -46,6 +46,7 @@ function printHelp() {
   console.log(`${cyan("|")}`);
   console.log(`${cyan("|")}  ${green("Options:")}`);
   console.log(`${cyan("|")}    -t, --template <name>     Template: default | minimal (default: default)`);
+  console.log(`${cyan("|")}    --port <number>           Server port (default: 18080)`);
   console.log(`${cyan("|")}    --no-docker               Skip Docker setup`);
   console.log(`${cyan("|")}    --no-mcp                  Skip MCP server`);
   console.log(`${cyan("|")}    --no-auth                 Skip auth plugin`);
@@ -68,6 +69,7 @@ function parseArgs() {
     projectName: null,
     template: "default",
     helpers: null, // null = interactive, [] = none, [...] = specific
+    port: null,
     yes: false,
     help: false,
   };
@@ -87,6 +89,11 @@ function parseArgs() {
 
     if (arg === "-t" || arg === "--template") {
       result.template = args[++i];
+      continue;
+    }
+
+    if (arg === "--port") {
+      result.port = args[++i];
       continue;
     }
 
@@ -228,6 +235,38 @@ async function main() {
 
   console.log(`${cyan("|")}`);
 
+  // Port selection
+  let port = args.port;
+  if (!args.yes && !port) {
+    const result = await prompts(
+      {
+        type: "text",
+        name: "port",
+        message: `${cyan("?")}  Server port:`,
+        initial: "18080",
+        validate: (value) => {
+          const num = parseInt(value, 10);
+          if (isNaN(num) || num < 1 || num > 65535) {
+            return "Please enter a valid port number (1-65535)";
+          }
+          return true;
+        },
+      },
+      {
+        onCancel: () => {
+          console.log(`${red("✖")}  Operation cancelled`);
+          process.exit(0);
+        },
+      }
+    );
+    port = result.port || "18080";
+  }
+  if (!port) {
+    port = "18080";
+  }
+
+  console.log(`${cyan("|")}`);
+
   // Copy template files
   const templateDir = path.join(__dirname, "..", "template");
   copyDir(templateDir, root, { template, helpers });
@@ -240,22 +279,7 @@ async function main() {
   }
 
   // Process template variables
-  processTemplate(root, { projectName: path.basename(root), helpers });
-
-  // Remove unselected plugins
-  const pluginMap = {
-    auth: "plugins/auth",
-    cors: "plugins/cors",
-    logging: "plugins/logging",
-  };
-  for (const [helper, dir] of Object.entries(pluginMap)) {
-    if (!helpers.includes(helper)) {
-      const pluginDir = path.join(root, dir);
-      if (fs.existsSync(pluginDir)) {
-        fs.rmSync(pluginDir, { recursive: true });
-      }
-    }
-  }
+  processTemplate(root, { projectName: path.basename(root), helpers, port });
 
   // Minimal template: remove sample functions
   if (template === "minimal") {
@@ -279,19 +303,20 @@ async function main() {
   console.log(`${cyan("|")}`);
   console.log(`${cyan("|")}  cd ${targetDir}`);
 
+  const displayPort = port || "18080";
   if (helpers.includes("docker")) {
     console.log(`${cyan("|")}  docker compose up -d`);
     console.log(`${cyan("|")}`);
-    console.log(`${cyan("|")}  HTTP API: http://localhost:18080`);
+    console.log(`${cyan("|")}  HTTP API: http://localhost:${displayPort}`);
     if (helpers.includes("mcp")) {
-      console.log(`${cyan("|")}  MCP SSE:  http://localhost:18080/mcp/sse`);
+      console.log(`${cyan("|")}  MCP SSE:  http://localhost:${displayPort}/mcp/sse`);
     }
   } else {
     console.log(`${cyan("|")}  deno task start`);
     console.log(`${cyan("|")}`);
-    console.log(`${cyan("|")}  HTTP API: http://localhost:8080`);
+    console.log(`${cyan("|")}  HTTP API: http://localhost:${displayPort}`);
     if (helpers.includes("mcp")) {
-      console.log(`${cyan("|")}  MCP SSE:  http://localhost:8080/mcp/sse`);
+      console.log(`${cyan("|")}  MCP SSE:  http://localhost:${displayPort}/mcp/sse`);
     }
   }
 
@@ -340,6 +365,12 @@ function processTemplate(dir, vars) {
     ) {
       let content = fs.readFileSync(filePath, "utf-8");
       content = content.replace(/\{\{PROJECT_NAME\}\}/g, vars.projectName);
+      if (vars.port) {
+        content = content.replace(/\{\{PORT\}\}/g, vars.port);
+        content = content.replace(/\{\{PORT_DEV\}\}/g, vars.port);
+        const prodPort = String(parseInt(vars.port, 10) + 1);
+        content = content.replace(/\{\{PORT_PROD\}\}/g, prodPort);
+      }
       fs.writeFileSync(filePath, content);
     }
   }

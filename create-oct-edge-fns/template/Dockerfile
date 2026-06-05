@@ -5,10 +5,8 @@ WORKDIR /app
 # Pre-cache dependencies
 COPY deno.json .
 COPY functions.json .
-COPY lib/ lib/
 COPY main.ts .
-COPY plugins/ plugins/
-RUN deno cache main.ts lib/db.ts lib/server.ts lib/server.types.ts lib/mcp/server.ts lib/mcp/tools.ts lib/mcp/session.ts lib/mcp/types.ts lib/mcp/registry.ts lib/mcp/adapters/index.ts lib/mcp/adapters/registry_store.ts lib/mcp/adapters/test_runner.ts lib/mcp/adapters/linter.ts lib/mcp/adapters/sql_executor.ts lib/mcp/adapters/build_service.ts lib/testing.ts plugins/auth/index.ts plugins/cors/index.ts plugins/logging/index.ts
+RUN deno cache main.ts
 
 # Copy functions
 COPY functions /app/functions

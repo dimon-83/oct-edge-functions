@@ -16,6 +16,9 @@ EXPORT_FILE = $(IMAGE_NAME)-$(IMAGE_TAG).tar
 # 检测 docker compose 命令
 DOCKER_COMPOSE := $(shell if docker compose version >/dev/null 2>&1; then echo "docker compose"; else echo "docker-compose"; fi)
 
+# 默认端口（可通过 PORT=xxx 覆盖）
+DEFAULT_PORT := $(shell grep "^HOST_PORT=" .env.dev 2>/dev/null | cut -d'=' -f2 || echo 18080)
+
 # ============================================
 # 帮助信息
 # ============================================
@@ -23,7 +26,7 @@ DOCKER_COMPOSE := $(shell if docker compose version >/dev/null 2>&1; then echo "
 help:
 	@echo "oct-edge-functions 构建工具"
 	@echo ""
-	@echo "用法: make [目标] [ENV=dev|prod]"
+	@echo "用法: make [目标] [ENV=dev|prod] [PORT=xxxx]"
 	@echo ""
 	@echo "目标:"
 	@echo "  make build          构建镜像 (默认 dev)"
@@ -37,6 +40,79 @@ help:
 	@echo "  make status         查看容器状态"
 	@echo "  make test           运行所有测试"
 	@echo "  make lint           运行代码检查"
+	@echo "  make cache          缓存远程依赖"
+	@echo "  make set-port       一键修改端口映射（.env.* + docker-compose.yml）"
+	@echo "  make get-port       查看当前端口配置"
+
+# ============================================
+# 一键修改端口
+# ============================================
+.PHONY: set-port
+set-port:
+	@if [ -z "$(PORT)" ]; then \
+		echo "❌ 错误: 请指定端口，例如: make set-port PORT=18080"; \
+		exit 1; \
+	fi
+	@echo "========================================"
+	@echo "修改端口为: $(PORT)"
+	@echo "========================================"
+	@# 修改 .env.dev
+	@if [ -f .env.dev ]; then \
+		sed -i.bak "s/^HOST_PORT=.*/HOST_PORT=$(PORT)/" .env.dev && rm -f .env.dev.bak; \
+		echo "✅ 已更新 .env.dev -> HOST_PORT=$(PORT)"; \
+	fi
+	@# 修改 .env.prod（生产环境端口默认 +1，避免冲突）
+	@if [ -f .env.prod ]; then \
+		PROD_PORT=$$(( $(PORT) + 1 )); \
+		sed -i.bak "s/^HOST_PORT=.*/HOST_PORT=$${PROD_PORT}/" .env.prod && rm -f .env.prod.bak; \
+		echo "✅ 已更新 .env.prod -> HOST_PORT=$${PROD_PORT}"; \
+	fi
+	@# 修改 .env.example
+	@if [ -f .env.example ]; then \
+		sed -i.bak "s/^PORT=.*/PORT=$(PORT)/" .env.example && rm -f .env.example.bak; \
+		echo "✅ 已更新 .env.example -> PORT=$(PORT)"; \
+	fi
+	@# 修改 docker-compose.yml
+	@if [ -f docker-compose.yml ]; then \
+		sed -i.bak "s/\$${HOST_PORT:-[0-9]*}/\$${HOST_PORT:-$(PORT)}/g" docker-compose.yml && rm -f docker-compose.yml.bak; \
+		echo "✅ 已更新 docker-compose.yml -> HOST_PORT=$(PORT)"; \
+	fi
+	@# 修改 opencode.json
+	@if [ -f opencode.json ]; then \
+		sed -i.bak "s|localhost:[0-9]*|localhost:$(PORT)|g" opencode.json && rm -f opencode.json.bak; \
+		echo "✅ 已更新 opencode.json -> localhost:$(PORT)"; \
+	fi
+	@# 修改 mcp-proxy.ts
+	@if [ -f mcp-proxy.ts ]; then \
+		sed -i.bak "s|localhost:[0-9]*|localhost:$(PORT)|g" mcp-proxy.ts && rm -f mcp-proxy.ts.bak; \
+		echo "✅ 已更新 mcp-proxy.ts -> localhost:$(PORT)"; \
+	fi
+	@echo ""
+	@echo "🎉 端口修改完成！"
+	@echo "   开发环境: http://localhost:$(PORT)"
+	@PROD_PORT=$$(( $(PORT) + 1 )); echo "   生产环境: http://localhost:$${PROD_PORT}"
+	@echo ""
+	@echo "提示: 如果容器正在运行，请先执行 make down 再 make up"
+
+.PHONY: get-port
+get-port:
+	@echo "当前端口配置:"
+	@if [ -f .env.dev ]; then \
+		DEV_PORT=$$(grep "^HOST_PORT=" .env.dev 2>/dev/null | cut -d'=' -f2 || echo "未设置"); \
+		echo "  .env.dev    HOST_PORT=$${DEV_PORT}"; \
+	fi
+	@if [ -f .env.prod ]; then \
+		PROD_PORT=$$(grep "^HOST_PORT=" .env.prod 2>/dev/null | cut -d'=' -f2 || echo "未设置"); \
+		echo "  .env.prod   HOST_PORT=$${PROD_PORT}"; \
+	fi
+	@if [ -f docker-compose.yml ]; then \
+		DC_PORT=$$(grep -oP '\$\{HOST_PORT:-\K[0-9]+' docker-compose.yml 2>/dev/null || echo "未设置"); \
+		echo "  docker-compose.yml 默认端口=$${DC_PORT}"; \
+	fi
+	@if [ -f opencode.json ]; then \
+		OC_PORT=$$(grep -oP 'localhost:\K[0-9]+' opencode.json 2>/dev/null || echo "未设置"); \
+		echo "  opencode.json  MCP URL端口=$${OC_PORT}"; \
+	fi
 
 # ============================================
 # 构建镜像
@@ -104,6 +180,13 @@ clean:
 	$(DOCKER_COMPOSE) down --rmi all --volumes --remove-orphans 2>/dev/null || true
 	docker rmi $(FULL_IMAGE_NAME) 2>/dev/null || true
 	@echo "✅ 清理完成"
+
+# ============================================
+# 缓存远程依赖
+# ============================================
+.PHONY: cache
+cache:
+	deno cache main.ts
 
 # ============================================
 # 运行测试

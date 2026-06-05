@@ -23,8 +23,8 @@ docker compose up -d
 ```
 
 服务启动后：
-- HTTP API: `http://localhost:18080`
-- MCP SSE: `http://localhost:18080/mcp/sse`
+- HTTP API: `http://localhost:{{PORT_DEV}}`
+- MCP SSE: `http://localhost:{{PORT_DEV}}/mcp/sse`
 
 ### 启动生产环境
 
@@ -32,7 +32,7 @@ docker compose up -d
 make up ENV=prod
 ```
 
-生产环境 **不开启 MCP 服务**，仅暴露 HTTP API。
+生产环境 **不开启 MCP 服务**，仅暴露 HTTP API（端口 {{PORT_PROD}}）。
 
 ---
 
@@ -41,28 +41,9 @@ make up ENV=prod
 ```
 .
 ├── functions/              # 边缘函数目录
-│   ├── users/              # 示例：用户管理 CRUD
-│   │   ├── index.ts        # 函数入口（必须 export default handler）
-│   │   └── test.ts         # 测试文件（Deno.test）
-│   └── inlet-org-tree/     # 示例：组织架构树查询
-│       ├── index.ts
-│       ├── inlet.ts        # 业务逻辑拆分
-│       └── test.ts
-├── lib/                    # 核心库
-│   ├── context.ts          # Ctx 类型、错误类
-│   ├── middleware.ts       # 中间件编排（compose）
-│   ├── db.ts               # PostgREST 客户端
-│   ├── logger.ts           # 日志（文件轮转）
-│   ├── testing.ts          # 测试脚手架（mock ctx、HTTP 辅助）
-│   ├── templates/          # 代码模板（crud/query/proxy/transform）
-│   └── mcp/                # MCP 服务实现
-│       ├── server.ts       # SSE 服务器
-│       ├── tools.ts        # 10 个 MCP tools
-│       └── session.ts      # 内存 session
-├── plugins/                # 插件
-│   ├── auth/               # Bearer Token → PostgREST JWT
-│   ├── cors/               # 跨域处理
-│   └── logging/            # 请求日志
+│   └── helloworld/         # 示例：Hello World
+│       ├── index.ts        # 函数入口（必须 export default handler）
+│       └── test.ts         # 测试文件（Deno.test）
 ├── functions.json          # 函数注册表（状态、版本、changelog）
 ├── main.ts                 # 入口（路由加载 + MCP 条件挂载）
 ├── deno.json               # Deno 配置
@@ -78,10 +59,11 @@ make up ENV=prod
 ### 最小示例
 
 ```typescript
-// functions/hello/index.ts
-import type { Ctx } from "../../lib/context.ts";
+// functions/helloworld/index.ts
+import type { Ctx } from "@oct-edge-fns/core";
 
 export default async function handler(req: Request, ctx: Ctx): Promise<Response> {
+  ctx.log?.info("GET /helloworld");
   return Response.json({ message: "Hello, World!" });
 }
 ```
@@ -89,8 +71,8 @@ export default async function handler(req: Request, ctx: Ctx): Promise<Response>
 ### 使用数据库
 
 ```typescript
-import { AuthError } from "../../lib/context.ts";
-import type { Ctx } from "../../lib/context.ts";
+import { AuthError } from "@oct-edge-fns/core";
+import type { Ctx } from "@oct-edge-fns/core";
 
 export default async function handler(req: Request, ctx: Ctx): Promise<Response> {
   if (!ctx.db) {
@@ -129,7 +111,7 @@ deno test --allow-all
 ### 运行单个函数测试
 
 ```bash
-deno test --allow-all functions/users/test.ts
+deno test --allow-all functions/helloworld/test.ts
 ```
 
 ### 代码检查
@@ -155,7 +137,7 @@ deno lint
   "mcpServers": {
     "oct-edge-functions": {
       "type": "sse",
-      "url": "http://localhost:18080/mcp/sse",
+      "url": "http://localhost:{{PORT_DEV}}/mcp/sse",
       "headers": {
         "Authorization": "Bearer YOUR_TOKEN"
       }
@@ -174,7 +156,7 @@ deno lint
 {
   "oct-edge-functions": {
     "type": "sse",
-    "url": "http://localhost:18080/mcp/sse",
+    "url": "http://localhost:{{PORT_DEV}}/mcp/sse",
     "headers": {
       "Authorization": "Bearer YOUR_TOKEN"
     }
@@ -191,7 +173,7 @@ deno lint
   "mcpServers": {
     "oct-edge-functions": {
       "type": "sse",
-      "url": "http://localhost:18080/mcp/sse",
+      "url": "http://localhost:{{PORT_DEV}}/mcp/sse",
       "headers": {
         "Authorization": "Bearer YOUR_TOKEN"
       }
@@ -205,7 +187,7 @@ deno lint
 ```bash
 # 1. 建立 SSE 会话
 curl -N -H "Authorization: Bearer YOUR_TOKEN" \
-  http://localhost:18080/mcp/sse
+  http://localhost:{{PORT_DEV}}/mcp/sse
 
 # 返回：
 # event: endpoint
@@ -215,7 +197,7 @@ curl -N -H "Authorization: Bearer YOUR_TOKEN" \
 curl -X POST \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN" \
-  "http://localhost:18080/mcp/message?session_id=xxx" \
+  "http://localhost:{{PORT_DEV}}/mcp/message?session_id=xxx" \
   -d '{
     "jsonrpc": "2.0",
     "id": 1,
@@ -305,8 +287,7 @@ Agent: 调用 publish_to_prod
 ```json
 {
   "functions": [
-    { "name": "users", "status": "active", "version": "1.0.0" },
-    { "name": "inlet-org-tree", "status": "active", "version": "1.0.0" }
+    { "name": "helloworld", "status": "active", "version": "1.0.0" }
   ]
 }
 ```
@@ -448,8 +429,7 @@ Agent: 调用 publish_to_prod
 #### Step 8: 验证 HTTP API
 
 ```bash
-curl -H "Authorization: Bearer YOUR_TOKEN" \
-  http://localhost:18080/orders
+curl http://localhost:{{PORT_DEV}}/helloworld
 
 # 返回订单列表
 ```
@@ -463,7 +443,7 @@ curl -H "Authorization: Bearer YOUR_TOKEN" \
 {
   "success": true,
   "data": {
-    "active_functions": ["users", "inlet-org-tree", "orders"],
+    "active_functions": ["helloworld", "orders"],
     "test_result": { "passed": 9, "failed": 0 },
     "build_output": "✅ 镜像导出完成: oct-edge-functions-prod.tar"
   }
@@ -523,7 +503,7 @@ draft → testing → active → deprecated → archived
 | 变量 | 默认值 | 说明 |
 |------|--------|------|
 | `DENO_ENV` | `development` | `development` 开启 MCP，`production` 关闭 |
-| `PORT` | `18080` | 服务端口 |
+| `PORT` | `{{PORT_DEV}}` | 服务端口 |
 | `FUNCTIONS_DIR` | `./functions` | 函数目录 |
 | `PGREST_URL` | `http://localhost:3000` | PostgREST 地址 |
 | `PGREST_SCHEMA` | `public` | 数据库 schema |
@@ -556,169 +536,28 @@ docker compose up -d
 
 ### 通用规范
 
-- **Base URL**: `http://localhost:18080`
+- **Base URL**: `http://localhost:{{PORT_DEV}}`
 - **鉴权**: `Authorization: Bearer YOUR_TOKEN`
 - **Content-Type**: `application/json`
 
 ### 现有 Endpoints
 
-#### GET /users
+#### GET /helloworld
 
-查询用户列表或单个用户。
-
-**Query 参数**:
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `id` | string | 否 | 用户 ID，传入则查单个 |
+Hello World 示例。
 
 **响应示例**:
 ```json
-// GET /users
-[
-  { "id": 1, "username": "alice", "email": "alice@example.com" },
-  { "id": 2, "username": "bob", "email": "bob@example.com" }
-]
-
-// GET /users?id=1
-{ "id": 1, "username": "alice", "email": "alice@example.com" }
+{
+  "message": "Hello, World!",
+  "timestamp": "2024-01-15T08:00:00.000Z"
+}
 ```
 
 **状态码**:
 | 状态码 | 说明 |
 |--------|------|
 | 200 | 成功 |
-| 400 | 查询错误 |
-| 401 | 未授权 |
-
----
-
-#### POST /users
-
-创建用户。
-
-**请求体**:
-```json
-{
-  "username": "charlie",
-  "email": "charlie@example.com"
-}
-```
-
-**响应示例**:
-```json
-[
-  { "id": 3, "username": "charlie", "email": "charlie@example.com" }
-]
-```
-
-**状态码**:
-| 状态码 | 说明 |
-|--------|------|
-| 201 | 创建成功 |
-| 400 | 参数错误 |
-| 401 | 未授权 |
-
----
-
-#### PATCH /users
-
-更新用户信息。
-
-**Query 参数**:
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `id` | string | 是 | 用户 ID |
-
-**请求体**:
-```json
-{
-  "email": "new@example.com"
-}
-```
-
-**响应示例**:
-```json
-[
-  { "id": 1, "username": "alice", "email": "new@example.com" }
-]
-```
-
-**状态码**:
-| 状态码 | 说明 |
-|--------|------|
-| 200 | 更新成功 |
-| 400 | 参数错误或缺少 id |
-| 401 | 未授权 |
-
----
-
-#### DELETE /users
-
-删除用户。
-
-**Query 参数**:
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `id` | string | 是 | 用户 ID |
-
-**响应示例**:
-```json
-[
-  { "id": 1, "username": "alice", "email": "alice@example.com" }
-]
-```
-
-**状态码**:
-| 状态码 | 说明 |
-|--------|------|
-| 200 | 删除成功 |
-| 400 | 缺少 id |
-| 401 | 未授权 |
-
----
-
-#### GET /inlet-org-tree
-
-查询进水口组织架构树。
-
-**响应示例**:
-```json
-[
-  {
-    "id": 1,
-    "company_name": "总公司",
-    "node_name": "总公司",
-    "node_type": "根节点",
-    "level_code": "01",
-    "children": [
-      {
-        "id": "virtual_01/02",
-        "company_name": "华东区",
-        "node_name": "华东区",
-        "node_type": "区域中心",
-        "level_code": "01/02",
-        "children": [
-          {
-            "id": 100,
-            "company_name": "上海项目",
-            "node_name": "上海项目",
-            "node_type": "项目",
-            "level_code": "01/02/001",
-            "children": []
-          }
-        ]
-      }
-    ]
-  }
-]
-```
-
-**状态码**:
-| 状态码 | 说明 |
-|--------|------|
-| 200 | 成功 |
-| 401 | 未授权 |
-| 500 | 服务器错误 |
 
 ---
 

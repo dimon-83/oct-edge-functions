@@ -4,7 +4,7 @@
  * Forwards stdio to SSE endpoint
  */
 
-const SSE_URL = "http://localhost:18080/mcp/sse";
+const SSE_URL = "http://localhost:{{PORT_DEV}}/mcp/sse";
 
 async function main() {
   console.error("[MCP Proxy] Connecting to", SSE_URL);
@@ -57,7 +57,7 @@ async function main() {
     if (n === null) break;
 
     const message = new TextDecoder().decode(buffer.subarray(0, n));
-    const url = `http://localhost:18080${messageEndpoint}`;
+    const url = `http://localhost:{{PORT_DEV}}${messageEndpoint}`;
 
     try {
       const response = await fetch(url, {
