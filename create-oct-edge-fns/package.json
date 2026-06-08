@@ -1,0 +1,35 @@
+{
+  "name": "create-oct-edge-fns",
+  "version": "1.0.0",
+  "description": "Scaffold a new Oct Edge Functions project",
+  "type": "module",
+  "bin": {
+    "create-oct-edge-fns": "bin/create-oct-edge-fns.js"
+  },
+  "files": [
+    "bin/",
+    "template/",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": [
+    "oct-edge-functions",
+    "edge-functions",
+    "deno",
+    "mcp",
+    "scaffold",
+    "cli",
+    "create"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "prompts": "^2.4.2",
+    "kolorist": "^1.8.0"
+  }
+}

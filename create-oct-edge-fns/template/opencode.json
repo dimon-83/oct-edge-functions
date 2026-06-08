@@ -1,0 +1,10 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "oct-edge-functions": {
+      "type": "remote",
+      "url": "http://localhost:{{PORT_DEV}}/mcp",
+      "headers": {}
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "functions": [
+    {
+      "name": "helloworld",
+      "path": "functions/helloworld",
+      "status": "active",
+      "version": "1.0.0",
+      "created_at": "2024-01-15T08:00:00Z",
+      "updated_at": "2024-01-15T08:00:00Z",
+      "history": [
+        {
+          "version": "1.0.0",
+          "status": "active",
+          "changed_at": "2024-01-15T08:00:00Z",
+          "reason": "初始创建"
+        }
+      ]
+    }
+  ]
+}

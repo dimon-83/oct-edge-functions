@@ -1,0 +1,24 @@
+# Logs
+logs/
+*.log
+
+# Environment
+.env
+.env.local
+
+# Deno
+deno.lock
+
+# Docker
+oct-edge-functions-*.tar
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencies
+node_modules/
