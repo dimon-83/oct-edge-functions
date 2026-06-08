@@ -3,7 +3,7 @@
 轻量级 Deno Edge Functions 运行时，为"胖数据库"架构而生。
 
 
-![架构图](docs/architecture.svg)
+![架构图](docs/architecture.png)
 
 
 **核心理念**：以 PostgreSQL 为中心，通过 PostgREST 直接暴露数据库能力，
