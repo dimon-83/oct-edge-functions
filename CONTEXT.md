@@ -98,3 +98,66 @@ draft → testing → active → deprecated → archived
 - The **Runtime** mounts zero or more **Functions** based on Registry + Status.
 - The **MCP Service** manipulates **Functions**, **Tests**, and the
   **Registry**.
+
+---
+
+## Cron Framework
+
+### System Cron Library
+
+Platform library at `lib/cron/` providing the cron task framework. Users import via `@oct/core`.
+
+### User Cron Job
+
+Business cron tasks defined in `crons/` directory of user projects.
+
+### Cron Task (Instance)
+
+A `CronTask` instance returned by `cron()`, containing schedule expression and handler function.
+
+### Scheduler
+
+Component responsible for scanning `crons/` directory, registering `CronTask` instances to `croner` runtime, and managing lifecycle.
+
+### Cron Registration
+
+- Uses **function-wrapper** style: `export default cron({...})`
+- Exported value is a `CronTask` instance, detectable via `instanceof CronTask`
+- Scanner auto-discovers `crons/*.ts` (flat, skips `*.test.ts` / `_` prefix / subdirs)
+
+### CronOptions Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `schedule` | `string` | Yes | CRON expression |
+| `handler` | `() => void \| Promise<void>` | Yes | Handler function |
+| `name` | `string` | No | Task name (logging/monitoring), inferred from filename |
+| `timezone` | `string` | No | IANA timezone, e.g. `"Asia/Shanghai"` |
+| `maxRuns` | `number` | No | Max execution count |
+| `paused` | `boolean` | No | Start paused |
+| `context` | `Record<string, unknown>` | No | Context data |
+| `retryOnFailure` | `number` | No | Retry count (0 = no retry) |
+| `catch` | `(error, context) => void` | No | Error callback |
+
+### Cron Task Status
+
+```
+registered → running → paused
+                ↑          │
+                └─ resume ─┘
+                │
+                └──→ stopped (stop / completed)
+```
+
+### Cron Log Format
+
+| Event | Format |
+|-------|--------|
+| Task start | `[cron] <name> started (schedule: <expr>)` |
+| Task complete | `[cron] <name> completed (took <ms>ms)` |
+| Task failure | `[cron] <name> failed after <N> attempts: <message>` |
+
+### Runtime
+
+- Scheduling engine: `jsr:@hexagon/croner`
+- Startup: user explicitly calls `await startCrons()` to trigger scan + registration

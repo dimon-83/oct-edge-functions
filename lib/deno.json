@@ -12,7 +12,8 @@
     "./db": "./db.ts",
     "./testing": "./testing.ts",
     "./pg": "./pg.ts",
-    "./auth": "./plugins/auth.ts"
+    "./auth": "./plugins/auth.ts",
+    "./cron": "./cron/mod.ts"
   },
   "publish": {
     "include": [
@@ -20,12 +21,15 @@
       "plugins/",
       "templates/",
       "mcp/",
+      "cron/",
       "deno.json",
       "README.md"
     ],
     "exclude": [
       "*_test.ts",
-      "plugins/*_test.ts"
+      "plugins/*_test.ts",
+      "cron/*_test.ts",
+      "cron/*_test.node.ts"
     ]
   },
   "tasks": {
@@ -40,7 +44,8 @@
     "@supabase/postgrest-js": "npm:@supabase/postgrest-js@^1.18.0",
     "@oct-edge-fns-core/": "./",
     "pg": "npm:pg@^8",
-    "pg/": "npm:pg@^8/"
+    "pg/": "npm:pg@^8/",
+    "@hexagon/croner": "jsr:@hexagon/croner@^8"
   },
   "lint": {
     "include": ["."],

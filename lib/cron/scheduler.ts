@@ -104,7 +104,7 @@ export async function startCrons(opts?: SchedulerOptions): Promise<void> {
   }
 
   // Dynamically import croner
-  const { Cron } = await import("jsr:@hexagon/croner");
+  const { Cron } = await import("jsr:@hexagon/croner@^8");
 
   for (const task of tasks) {
     // For paused tasks, create the cron job in paused state so
