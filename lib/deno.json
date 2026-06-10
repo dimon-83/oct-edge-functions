@@ -1,6 +1,6 @@
 {
   "name": "@oct-edge-fns/core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Edge function runtime core — server, middleware, MCP, plugins, templates for Deno edge functions",
   "license": "MIT",
   "exports": {
