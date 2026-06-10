@@ -1,6 +1,8 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@hexagon/croner@*": "10.0.1",
+    "jsr:@std/assert@*": "1.0.19",
     "jsr:@std/assert@1": "1.0.19",
     "jsr:@std/fs@1": "1.0.23",
     "jsr:@std/internal@^1.0.12": "1.0.13",
@@ -11,6 +13,9 @@
     "npm:sharp@*": "0.34.5"
   },
   "jsr": {
+    "@hexagon/croner@10.0.1": {
+      "integrity": "95120f312b5e63afaaa4861838fe2d7b42f32554d2af96b7524b072abf63dabd"
+    },
     "@std/assert@1.0.19": {
       "integrity": "eaada96ee120cb980bc47e040f82814d786fe8162ecc53c91d8df60b8755991e",
       "dependencies": [
