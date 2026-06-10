@@ -2,7 +2,7 @@
 
 轻量级 Deno Edge Functions 运行时，为"胖数据库"架构而生。
 
-![架构图](docs/architecture.svg)
+![架构图](https://raw.githubusercontent.com/dimon-83/oct-edge-functions/master/docs/architecture.svg)
 
 **核心理念**：以 PostgreSQL 为中心，通过 PostgREST 直接暴露数据库能力，
 边缘层仅处理轻量编排（认证、校验、聚合），避免引入 Supabase、Inngest 等
