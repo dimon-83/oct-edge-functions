@@ -83,3 +83,23 @@ export { corsMiddlewares } from "./plugins/cors.ts";
 export { createAuthMiddlewares, envTokenProvider } from "./plugins/auth.ts";
 export type { PgrestTokenProvider } from "./plugins/auth.ts";
 export { loggingMiddlewares } from "./plugins/logging.ts";
+
+// Cron framework
+export {
+  cron,
+  listTasks,
+  pauseTask,
+  registerTask,
+  resumeTask,
+  startCrons,
+  stopTask,
+} from "./cron/mod.ts";
+export type {
+  CronCatchHandler,
+  CronHandler,
+  CronLogger,
+  CronOptions,
+  CronStatus,
+  CronTask,
+  SchedulerOptions as StartCronsOptions,
+} from "./cron/mod.ts";

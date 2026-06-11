@@ -59,42 +59,61 @@ make up ENV=prod
 
 ```
 .
-├── functions/              # 边缘函数目录
-│   ├── users/              # 示例：用户管理 CRUD
-│   │   ├── index.ts        # 函数入口（必须 export default handler）
-│   │   └── test.ts         # 测试文件（Deno.test）
-│   └── inlet-org-tree/     # 示例：组织架构树查询
-│       ├── index.ts
-│       ├── inlet.ts        # 业务逻辑拆分
-│       └── test.ts
-├── lib/                    # 核心库
+├── lib/                    # @oct-edge-fns/core 核心库（发布到 JSR）
 │   ├── context.ts          # Ctx 类型、错误类
 │   ├── middleware.ts       # 中间件编排（compose）
 │   ├── db.ts               # PostgREST 客户端
 │   ├── logger.ts           # 日志（文件轮转）
-│   ├── testing.ts          # 测试脚手架（mock ctx、HTTP 辅助）
-│   ├── pg.ts               # PostgreSQL 工具（SQL 安全检查）
+│   ├── testing.ts          # 测试脚手架
+│   ├── pg.ts               # PostgreSQL 工具
+│   ├── server.ts           # HTTP 服务器
+│   ├── cron/               # Cron 任务框架
+│   │   ├── scheduler.ts    # Cron 调度器
+│   │   └── mod.ts          # 导出
 │   ├── templates/          # 代码模板（crud/query/proxy/transform）
 │   ├── plugins/            # 内置插件
+│   │   ├── auth.ts         # 认证中间件
 │   │   ├── cors.ts         # CORS 跨域
 │   │   └── logging.ts      # 请求日志
-│   └── mcp/                # MCP 服务实现
-│       ├── server.ts       # SSE 服务器
-│       ├── tools.ts        # MCP tools
-│       └── session.ts      # 内存 session
-├── scripts/                # 辅助脚本（core-link/unlink 等）
-├── example/                # 模板项目（create-oct-edge-fns 脚手架来源）
-├── plugins/                # 项目级插件
-│   └── auth/               # 认证中间件（默认读 PGREST_JWT，用户可自定义）
-├── packages/               # 可发布的包
-│   └── create-oct-edge-fns/ # CLI 脚手架（发布到 npm）
-├── functions.json          # 函数注册表（状态、版本、changelog）
-├── main.ts                 # 入口（路由加载 + MCP 条件挂载）
-├── deno.json               # Deno 配置
-├── Dockerfile              # 镜像构建（多阶段构建 + healthcheck）
-├── docker-compose.yml      # 容器编排
-└── Makefile                # 快捷命令
+│   ├── mcp/                # MCP 服务实现
+│   │   ├── server.ts       # SSE 服务器
+│   │   ├── tools.ts        # MCP tools
+│   │   └── session.ts      # 内存 session
+│   ├── deno.json           # @oct-edge-fns/core 包配置
+│   └── mod.ts              # 包入口
+├── create-oct-edge-fns/    # CLI 脚手架（发布到 npm）
+│   ├── bin/
+│   │   └── create-oct-edge-fns.js
+│   ├── template/           # 项目模板
+│   │   ├── functions/      # 边缘函数目录（运行时创建）
+│   │   │   └── helloworld/
+│   │   ├── crons/          # Cron 任务目录
+│   │   │   └── hello-world.ts
+│   │   ├── plugins/
+│   │   │   └── auth/       # 认证中间件
+│   │   ├── docs/
+│   │   ├── main.ts         # 入口（server + startCrons）
+│   │   ├── deno.json
+│   │   ├── Dockerfile
+│   │   └── ...
+│   └── package.json
+├── dev-host/               # 宿主项目示例（开发测试用）
+│   ├── main.ts             # 使用 @oct-edge-fns/core 启动服务
+│   ├── plugins/
+│   │   └── auth/index.ts
+│   ├── deno.json
+│   ├── Dockerfile
+│   └── ...
+├── docs/                   # 架构文档
+├── README.md
+└── .gitignore
 ```
+
+**说明**：
+- `lib/` = `@oct-edge-fns/core` 包，发布到 JSR，供所有使用方导入
+- `create-oct-edge-fns/` = CLI 脚手架，通过 `npx create-oct-edge-fns my-project` 创建新项目
+- `dev-host/` = 开发时的宿主项目示例，用于测试库的集成，不发布
+- 项目根目录是**库仓库**，不再包含运行时宿主文件
 
 ---
 

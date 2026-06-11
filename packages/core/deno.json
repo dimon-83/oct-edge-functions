@@ -1,0 +1,11 @@
+{
+  "name": "@oct/core",
+  "version": "0.2.0",
+  "exports": "./mod.ts",
+  "publish": {
+    "include": [
+      "mod.ts",
+      "README.md"
+    ]
+  }
+}

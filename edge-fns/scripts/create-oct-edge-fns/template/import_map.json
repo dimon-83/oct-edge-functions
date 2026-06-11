@@ -1,5 +1,0 @@
-{
-  "imports": {
-    "@oct/core": "jsr:@oct/core@^0.1"
-  }
-}

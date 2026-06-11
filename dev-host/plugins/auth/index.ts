@@ -1,8 +1,8 @@
 /**
  * Project-level auth middleware configuration.
  *
- * Default: reads PGREST_JWT from environment.
- * For production, replace getToken() with a secure implementation
+ * Default implementation: reads PGREST_JWT from environment.
+ * For production, replace getToken() with a secure token provider
  * (e.g. token exchange, OAuth2, or your own AuthPlugin).
  */
 

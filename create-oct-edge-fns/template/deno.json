@@ -12,11 +12,11 @@
     "@std/path": "jsr:@std/path@^1.0.0",
     "@std/assert": "jsr:@std/assert@^1.0.0",
     "@supabase/postgrest-js": "npm:@supabase/postgrest-js@^1.18.0",
-    "@oct-edge-fns/core": "jsr:@oct-edge-fns/core@^0.1.0",
-    "@oct-edge-fns/core/": "jsr:@oct-edge-fns/core@^0.1.0/"
+    "@oct-edge-fns/core": "jsr:@oct-edge-fns/core@^0.2.1",
+    "@oct-edge-fns/core/": "jsr:@oct-edge-fns/core@^0.2.1/"
   },
   "lint": {
-    "include": ["functions/", "main.ts"],
+    "include": ["functions/", "crons/", "main.ts"],
     "exclude": []
   }
 }
