@@ -3,7 +3,6 @@
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import fs from "node:fs";
-import { execSync } from "node:child_process";
 import prompts from "prompts";
 import { cyan, yellow, green, red, reset, dim } from "kolorist";
 
@@ -21,21 +20,23 @@ const TEMPLATES = [
     name: "minimal",
     display: "Minimal",
     color: yellow,
-    description: "Bare minimum setup, no sample functions",
+    description: "Bare minimum setup, no sample functions or crons",
   },
 ];
 
 const HELPERS = [
   { name: "docker", display: "Docker + Docker Compose", color: cyan, checked: true },
   { name: "mcp", display: "MCP Server (Dev)", color: green, checked: true },
+  { name: "crons", display: "Cron Tasks", color: green, checked: true },
   { name: "auth", display: "Auth Plugin", color: yellow, checked: true },
   { name: "cors", display: "CORS Plugin", color: reset, checked: true },
   { name: "logging", display: "Logging Plugin", color: cyan, checked: true },
+  { name: "rate-limit", display: "Rate Limit Plugin", color: red, checked: false },
 ];
 
 function printBanner() {
   console.log();
-  console.log(`${cyan("◆")}  ${cyan("create-oct-edge-fns")}  ${dim("v1.0.0")}`);
+  console.log(`${cyan("◆")}  ${cyan("create-oct-edge-fns")}  ${dim("v1.1.0")}`);
   console.log(`${cyan("|")}`);
 }
 
@@ -49,16 +50,23 @@ function printHelp() {
   console.log(`${cyan("|")}    --port <number>           Server port (default: 18080)`);
   console.log(`${cyan("|")}    --no-docker               Skip Docker setup`);
   console.log(`${cyan("|")}    --no-mcp                  Skip MCP server`);
+  console.log(`${cyan("|")}    --no-crons                Skip cron tasks`);
   console.log(`${cyan("|")}    --no-auth                 Skip auth plugin`);
   console.log(`${cyan("|")}    --no-cors                 Skip CORS plugin`);
   console.log(`${cyan("|")}    --no-logging              Skip logging plugin`);
+  console.log(`${cyan("|")}    --rate-limit              Include rate-limit plugin`);
   console.log(`${cyan("|")}    --all                     Include all features`);
   console.log(`${cyan("|")}    -y, --yes                 Skip prompts, use defaults`);
   console.log(`${cyan("|")}    -h, --help                Show this help`);
   console.log(`${cyan("|")}`);
+  console.log(`${cyan("|")}  ${green("Plugins:")}`);
+  console.log(`${cyan("|")}    Plugins are system-level middleware that run on every request.`);
+  console.log(`${cyan("|")}    Each plugin lives in plugins/<name>/index.ts and can be customized.`);
+  console.log(`${cyan("|")}`);
   console.log(`${cyan("|")}  ${green("Examples:")}`);
   console.log(`${cyan("|")}    npm create oct-edge-fns@latest my-app`);
   console.log(`${cyan("|")}    npm create oct-edge-fns@latest my-app -t minimal --no-docker`);
+  console.log(`${cyan("|")}    npm create oct-edge-fns@latest my-app --rate-limit --no-crons`);
   console.log(`${cyan("|")}    npm create oct-edge-fns@latest my-app -y`);
   console.log();
 }
@@ -102,10 +110,16 @@ function parseArgs() {
       continue;
     }
 
+    if (arg === "--rate-limit") {
+      if (result.helpers === null) result.helpers = HELPERS.filter((h) => h.checked).map((h) => h.name);
+      if (!result.helpers.includes("rate-limit")) result.helpers.push("rate-limit");
+      continue;
+    }
+
     if (arg.startsWith("--no-")) {
       const helperName = arg.slice(5);
       if (HELPERS.some((h) => h.name === helperName)) {
-        if (result.helpers === null) result.helpers = HELPERS.map((h) => h.name);
+        if (result.helpers === null) result.helpers = HELPERS.filter((h) => h.checked).map((h) => h.name);
         result.helpers = result.helpers.filter((h) => h !== helperName);
       }
       continue;
@@ -281,7 +295,7 @@ async function main() {
   // Process template variables
   processTemplate(root, { projectName: path.basename(root), helpers, port });
 
-  // Minimal template: remove sample functions
+  // Minimal template: remove sample functions and crons
   if (template === "minimal") {
     const functionsDir = path.join(root, "functions");
     if (fs.existsSync(functionsDir)) {
@@ -289,11 +303,77 @@ async function main() {
     }
     fs.mkdirSync(functionsDir, { recursive: true });
 
+    const cronsDir = path.join(root, "crons");
+    if (fs.existsSync(cronsDir)) {
+      fs.rmSync(cronsDir, { recursive: true });
+    }
+
     // Write empty functions.json
     fs.writeFileSync(
       path.join(root, "functions.json"),
       JSON.stringify({ functions: [] }, null, 2) + "\n"
     );
+  }
+
+  // Remove unselected plugins
+  const allPlugins = ["auth", "cors", "logging", "rate-limit"];
+  const selectedPlugins = helpers.filter((h) => allPlugins.includes(h));
+  for (const plugin of allPlugins) {
+    if (!selectedPlugins.includes(plugin)) {
+      const pluginDir = path.join(root, "plugins", plugin);
+      if (fs.existsSync(pluginDir)) {
+        fs.rmSync(pluginDir, { recursive: true });
+      }
+    }
+  }
+
+  // Remove crons dir if not selected
+  if (!helpers.includes("crons")) {
+    const cronsDir = path.join(root, "crons");
+    if (fs.existsSync(cronsDir)) {
+      fs.rmSync(cronsDir, { recursive: true });
+    }
+    // Remove startCrons from main.ts
+    const mainPath = path.join(root, "main.ts");
+    if (fs.existsSync(mainPath)) {
+      let content = fs.readFileSync(mainPath, "utf-8");
+      content = content.replace(/\nawait startCrons\(\{ cronsDir: CRONS_DIR \}\);\n/, "\n");
+      content = content.replace(/, startCrons/, "");
+      content = content.replace(/const CRONS_DIR = Deno\.env\.get\("CRONS_DIR"\) \?\? "\.\/crons";\n/, "");
+      fs.writeFileSync(mainPath, content);
+    }
+  }
+
+  // Update main.ts: only import selected plugins
+  const mainPath = path.join(root, "main.ts");
+  if (fs.existsSync(mainPath)) {
+    let content = fs.readFileSync(mainPath, "utf-8");
+
+    // Remove unselected plugin imports
+    if (!helpers.includes("auth")) {
+      content = content.replace(/import \{ authMiddlewares \} from "\.\/plugins\/auth\/index\.ts";\n/, "");
+      content = content.replace(/\s*\.\.\.authMiddlewares,/, "");
+    }
+    if (!helpers.includes("cors")) {
+      content = content.replace(/import \{ corsPlugin \} from "\.\/plugins\/cors\/index\.ts";\n/, "");
+      content = content.replace(/\s*\.\.\.corsPlugin,/, "");
+    }
+    if (!helpers.includes("logging")) {
+      content = content.replace(/import \{ loggingPlugin \} from "\.\/plugins\/logging\/index\.ts";\n/, "");
+      content = content.replace(/\s*\.\.\.loggingPlugin,/, "");
+    }
+    if (helpers.includes("rate-limit")) {
+      content = content.replace(
+        /import \{ corsPlugin \} from "\.\/plugins\/cors\/index\.ts";/,
+        'import { corsPlugin } from "./plugins/cors/index.ts";\nimport { rateLimitPlugin } from "./plugins/rate-limit/index.ts";'
+      );
+      content = content.replace(
+        /\.\.\.corsPlugin,/,
+        "...corsPlugin,\n  ...rateLimitPlugin,"
+      );
+    }
+
+    fs.writeFileSync(mainPath, content);
   }
 
   // Print success
@@ -326,8 +406,6 @@ async function main() {
 }
 
 function copyDir(srcDir, destDir, options) {
-  const { template, helpers } = options;
-
   fs.mkdirSync(destDir, { recursive: true });
 
   for (const file of fs.readdirSync(srcDir)) {

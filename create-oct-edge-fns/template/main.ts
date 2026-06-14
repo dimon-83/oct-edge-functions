@@ -6,10 +6,10 @@ const DENO_ENV = Deno.env.get("DENO_ENV") ?? "development";
 const MCP_ENABLED = DENO_ENV === "development" || DENO_ENV === "dev";
 const FUNCTIONS_DIR = Deno.env.get("FUNCTIONS_DIR") ?? "./functions";
 
-const plugins = [
-  ...loggingMiddlewares,
-  ...corsMiddlewares,
-  ...createAuthMiddlewares(),
+const plugins: Middleware[] = [
+  ...loggingPlugin,
+  ...corsPlugin,
+  ...authMiddlewares,
 ];
 
 const server = new HttpServer({
