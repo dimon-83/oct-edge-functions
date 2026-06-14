@@ -1,11 +1,10 @@
-import { HttpServer } from "@oct-edge-fns/core";
-import { createAuthMiddlewares, corsMiddlewares, loggingMiddlewares, startCrons } from "@oct-edge-fns/core";
+import { HttpServer, createAuthMiddlewares, corsMiddlewares, loggingMiddlewares, registerTask, startCrons } from "@oct-edge-fns/core";
+import helloWorldCron from "./crons/hello-world.ts";
 
-const PORT = parseInt(Deno.env.get("PORT") ?? "{{PORT_DEV}}");
+const PORT = parseInt(Deno.env.get("PORT") ?? "18080");
 const DENO_ENV = Deno.env.get("DENO_ENV") ?? "development";
 const MCP_ENABLED = DENO_ENV === "development" || DENO_ENV === "dev";
 const FUNCTIONS_DIR = Deno.env.get("FUNCTIONS_DIR") ?? "./functions";
-const CRONS_DIR = Deno.env.get("CRONS_DIR") ?? "./crons";
 
 const plugins = [
   ...loggingMiddlewares,
@@ -20,6 +19,7 @@ const server = new HttpServer({
   mcpEnabled: MCP_ENABLED,
 });
 
-await startCrons({ cronsDir: CRONS_DIR });
+registerTask(helloWorldCron);
+await startCrons();
 
 await server.start();

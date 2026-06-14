@@ -1,10 +1,10 @@
 services:
-  oct-edge-functions:
+  {{PROJECT_NAME}}:
     build:
       context: .
       dockerfile: Dockerfile
-    image: oct-edge-functions:${IMAGE_TAG:-latest}
-    container_name: oct-edge-functions-${DENO_ENV:-dev}
+    image: {{PROJECT_NAME}}:${IMAGE_TAG:-latest}
+    container_name: {{PROJECT_NAME}}-${DENO_ENV:-dev}
     ports:
       - "${HOST_PORT:-{{PORT_DEV}}}:18080"
     # 继承模式：先加载 .env，再用 .env.${DENO_ENV} 覆盖

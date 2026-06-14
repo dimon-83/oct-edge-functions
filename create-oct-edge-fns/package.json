@@ -1,6 +1,6 @@
 {
   "name": "create-oct-edge-fns",
-  "version": "1.0.0",
+  "version": "1.2.6",
   "description": "Scaffold a new Oct Edge Functions project",
   "type": "module",
   "bin": {
@@ -29,7 +29,8 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "prompts": "^2.4.2",
-    "kolorist": "^1.8.0"
+    "create-oct-edge-fns": "^1.2.0",
+    "kolorist": "^1.8.0",
+    "prompts": "^2.4.2"
   }
 }

@@ -45,7 +45,9 @@ export async function scanCrons(scanDir = "./crons"): Promise<CronTask[]> {
     }
 
     for (const fileName of entries) {
-      const filePath = `./${scanDir}/${fileName}`;
+      // Use absolute file path so dynamic import resolves against the filesystem
+      // even when this module is loaded from a remote URL (e.g. JSR).
+      const filePath = new URL(`${scanDir}/${fileName}`, `file://${Deno.cwd()}/`).href;
       try {
         const mod = await import(filePath);
         const exported = mod.default;

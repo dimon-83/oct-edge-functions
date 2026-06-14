@@ -5,7 +5,7 @@
 
 # 默认环境
 ENV ?= dev
-IMAGE_NAME = oct-edge-functions
+IMAGE_NAME = {{PROJECT_NAME}}
 CONTAINER_NAME = $(IMAGE_NAME)-$(ENV)
 
 # 从 .env.$(ENV) 加载 IMAGE_TAG
@@ -208,7 +208,7 @@ lint:
 .PHONY: status
 status:
 	@echo "容器状态:"
-	@docker ps --filter "name=oct-edge-functions" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+	@docker ps --filter "name=$(IMAGE_NAME)" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 	@echo ""
 	@echo "镜像列表:"
-	@docker images --filter "reference=oct-edge-functions*" --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}"
+	@docker images --filter "reference=$(IMAGE_NAME)*" --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}"

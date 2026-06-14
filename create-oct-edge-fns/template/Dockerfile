@@ -6,12 +6,13 @@ WORKDIR /app
 COPY deno.json .
 COPY functions.json .
 COPY main.ts .
+COPY crons /app/crons
 RUN deno cache main.ts
 
 # Copy functions
 COPY functions /app/functions
 
-RUN find functions -name '*.ts' | xargs deno cache
+RUN find functions -name '*.ts' ! -name 'test.ts' | xargs deno cache
 
 USER deno
 
