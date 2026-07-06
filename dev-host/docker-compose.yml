@@ -7,7 +7,6 @@ services:
     container_name: oct-edge-functions-${DENO_ENV:-dev}
     ports:
       - "${HOST_PORT:-18080}:18080"
-    # 继承模式：先加载 .env，再用 .env.${DENO_ENV} 覆盖
     env_file:
       - .env
       - .env.${DENO_ENV:-dev}
@@ -19,4 +18,8 @@ services:
       - ./functions.json:/app/functions.json
       - ./plugins:/app/plugins:ro
       - ./logs:/app/logs
+    command: >
+      sh -c 'if [ "$$DENO_ENV" = "development" ] || [ "$$DENO_ENV" = "dev" ];
+      then deno run --watch --allow-net --allow-env --allow-read --allow-write main.ts;
+      else deno run --allow-net --allow-env --allow-read --allow-write main.ts; fi'
     restart: unless-stopped

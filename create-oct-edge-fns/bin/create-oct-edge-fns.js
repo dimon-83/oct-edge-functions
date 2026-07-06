@@ -385,7 +385,8 @@ async function main() {
 
   const displayPort = port || "18080";
   if (helpers.includes("docker")) {
-    console.log(`${cyan("|")}  docker compose up -d`);
+    console.log(`${cyan("|")}  make up            # dev 环境含热加载，prod 为生产模式`);
+    console.log(`${cyan("|")}  make build         # 构建镜像`);
     console.log(`${cyan("|")}`);
     console.log(`${cyan("|")}  HTTP API: http://localhost:${displayPort}`);
     if (helpers.includes("mcp")) {

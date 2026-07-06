@@ -7,6 +7,7 @@ COPY deno.json .
 COPY functions.json .
 COPY main.ts .
 COPY crons /app/crons
+COPY plugins /app/plugins
 RUN deno cache main.ts
 
 # Copy functions

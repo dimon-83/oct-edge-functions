@@ -37,8 +37,8 @@ help:
 	@echo "Docker 目标:"
 	@echo "  make build          构建镜像 (默认 dev)"
 	@echo "  make build ENV=prod 构建生产镜像"
-	@echo "  make up             启动服务 (默认 dev)"
-	@echo "  make up ENV=prod    启动生产服务"
+	@echo "  make up             启动服务 (dev 含 --watch 热加载)"
+	@echo "  make up ENV=prod    启动生产服务 (无 --watch)"
 	@echo "  make down           停止服务"
 	@echo "  make export         导出镜像为 tar 文件"
 	@echo "  make logs           查看日志"
@@ -95,6 +95,8 @@ up:
 	DENO_ENV=$(ENV) IMAGE_TAG=$(IMAGE_TAG) $(DOCKER_COMPOSE) up -d
 	@echo ""
 	@echo "✅ 服务已启动: $(CONTAINER_NAME)"
+	@echo "   dev 环境: 热加载已启用 (deno run --watch)"
+	@echo "   prod 环境: 正常启动 (deno run)"
 	@echo "查看日志: make logs ENV=$(ENV)"
 
 # ============================================
@@ -136,7 +138,7 @@ clean:
 	@echo "✅ 清理完成"
 
 # ============================================
-# Deno 开发
+# Deno 开发 (本地)
 # ============================================
 .PHONY: dev
 dev:
