@@ -18,9 +18,13 @@ export const defaultLogger: CronLogger = {
     console.log(`[cron] ${taskLabel} completed (took ${elapsedMs}ms)`);
   },
   failed(taskLabel, attempts, error) {
-    console.error(`[cron] ${taskLabel} failed after ${attempts} attempts: ${error.message}`);
+    console.error(
+      `[cron] ${taskLabel} failed after ${attempts} attempts: ${error.message}`,
+    );
   },
   retry(taskLabel, attempt, error) {
-    console.warn(`[cron] ${taskLabel} attempt ${attempt} failed: ${error.message} — retrying`);
+    console.warn(
+      `[cron] ${taskLabel} attempt ${attempt} failed: ${error.message} — retrying`,
+    );
   },
 };

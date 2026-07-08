@@ -9,11 +9,10 @@ import assert from "node:assert/strict";
 import { cron } from "./cron.ts";
 import { CronTask } from "./types.ts";
 import {
-  registerTask,
-  registerTasks,
   listTasks,
   pauseTask,
-  resumeTask,
+  registerTask,
+  registerTasks,
   stopTask,
 } from "./scheduler.ts";
 
@@ -36,7 +35,11 @@ describe("cron()", () => {
 
   it("uses provided name instead of inferring", () => {
     resetState();
-    const task = cron({ schedule: "*/5 * * * *", handler: () => {}, name: "my-task" });
+    const task = cron({
+      schedule: "*/5 * * * *",
+      handler: () => {},
+      name: "my-task",
+    });
     assert.equal(task.name, "my-task");
   });
 
@@ -54,7 +57,11 @@ describe("cron()", () => {
 
   it("creates task with paused status", () => {
     resetState();
-    const task = cron({ schedule: "* * * * *", handler: () => {}, paused: true });
+    const task = cron({
+      schedule: "* * * * *",
+      handler: () => {},
+      paused: true,
+    });
     assert.equal(task.status, "paused");
   });
 
@@ -66,7 +73,11 @@ describe("cron()", () => {
 
   it("stores retryOnFailure value", () => {
     resetState();
-    const task = cron({ schedule: "* * * * *", handler: () => {}, retryOnFailure: 3 });
+    const task = cron({
+      schedule: "* * * * *",
+      handler: () => {},
+      retryOnFailure: 3,
+    });
     assert.equal(task.retryOnFailure, 3);
   });
 
@@ -74,7 +85,9 @@ describe("cron()", () => {
     resetState();
     const task = cron({
       schedule: "* * * * *",
-      handler: () => { throw new Error("oops"); },
+      handler: () => {
+        throw new Error("oops");
+      },
       name: "catch-test",
       retryOnFailure: 1,
       catch: () => {},
@@ -87,13 +100,22 @@ describe("cron()", () => {
 
 describe("CronTask", () => {
   it("label returns formatted string", () => {
-    const task = cron({ schedule: "0 8 * * *", handler: () => {}, name: "label-test" });
+    const task = cron({
+      schedule: "0 8 * * *",
+      handler: () => {},
+      name: "label-test",
+    });
     assert.equal(task.label, "label-test (schedule: 0 8 * * *)");
   });
 
   it("context is passed through", () => {
     const ctx = { userId: "123", env: "production" };
-    const task = cron({ schedule: "* * * * *", handler: () => {}, name: "ctx-test", context: ctx });
+    const task = cron({
+      schedule: "* * * * *",
+      handler: () => {},
+      name: "ctx-test",
+      context: ctx,
+    });
     assert.equal(task.context?.userId, "123");
     assert.equal(task.context?.env, "production");
   });
@@ -104,7 +126,11 @@ describe("CronTask", () => {
 describe("Task management API", () => {
   it("registerTask adds task to registry", () => {
     resetState();
-    const task = cron({ schedule: "0 8 * * *", handler: () => {}, name: "reg-test" });
+    const task = cron({
+      schedule: "0 8 * * *",
+      handler: () => {},
+      name: "reg-test",
+    });
     registerTask(task);
     const tasks = listTasks();
     assert(tasks.some((t) => t.name === "reg-test"));
@@ -112,8 +138,16 @@ describe("Task management API", () => {
 
   it("registerTasks adds multiple tasks at once", () => {
     resetState();
-    const a = cron({ schedule: "0 8 * * *", handler: () => {}, name: "multi-a" });
-    const b = cron({ schedule: "0 9 * * *", handler: () => {}, name: "multi-b" });
+    const a = cron({
+      schedule: "0 8 * * *",
+      handler: () => {},
+      name: "multi-a",
+    });
+    const b = cron({
+      schedule: "0 9 * * *",
+      handler: () => {},
+      name: "multi-b",
+    });
     registerTasks([a, b]);
     assert.equal(listTasks().length, 2);
   });
@@ -129,7 +163,11 @@ describe("Task management API", () => {
 
   it("listTasks returns correct shape", () => {
     resetState();
-    const task = cron({ schedule: "*/10 * * * *", handler: () => {}, name: "shape" });
+    const task = cron({
+      schedule: "*/10 * * * *",
+      handler: () => {},
+      name: "shape",
+    });
     registerTask(task);
     const t = listTasks()[0];
     assert.ok(t.name);
@@ -142,14 +180,22 @@ describe("Task management API", () => {
 
   it("pauseTask on task without job returns false", () => {
     resetState();
-    const task = cron({ schedule: "* * * * *", handler: () => {}, name: "pause-nojob" });
+    const task = cron({
+      schedule: "* * * * *",
+      handler: () => {},
+      name: "pause-nojob",
+    });
     registerTask(task);
     assert.equal(pauseTask("pause-nojob"), false);
   });
 
   it("stopTask removes task from registry", () => {
     resetState();
-    const task = cron({ schedule: "0 8 * * *", handler: () => {}, name: "stop-test" });
+    const task = cron({
+      schedule: "0 8 * * *",
+      handler: () => {},
+      name: "stop-test",
+    });
     registerTask(task);
     assert.equal(listTasks().length, 1);
     stopTask("stop-test");

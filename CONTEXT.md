@@ -53,6 +53,41 @@ tools for agent-driven function lifecycle management.
 - **Session**: In-memory session map (sufficient for single-instance dev).
 - **Scope**: Dev environment only. Disabled in prod.
 
+### Skill
+
+A reusable domain capability package consumed by the MCP Service. A Skill
+contains a `SKILL.md` with instructions for the agent and may optionally include
+executable entry points (e.g. WASM, TypeScript, Python) for deterministic
+automation.
+
+- **Name**: Unique identifier, lowercase with hyphens, declared in `SKILL.md`
+  frontmatter.
+- **Description**: Natural language summary of when and how to use the Skill.
+- **Runtime**: The execution environment required by the Skill's entry point.
+  One of `wasm | deno | python`.
+- **Entry**: Optional executable path relative to the Skill directory. When
+  present, the MCP Service can invoke it directly via stdin/stdout JSON.
+- **Source**: Where the Skill originates — a marketplace (e.g. mooncakes.io),
+  npm-compatible package, git repository, or local path.
+
+### Skill Registry
+
+The single source of truth for installed and enabled Skills in a project.
+
+- Tracks name, source, installation location, enabled status, and version.
+- Used by the MCP Service to discover available Skills and by container
+  initialization to install missing Skills.
+
+### Skill Runtime
+
+The execution environment responsible for running a Skill's entry point. The
+MCP Service delegates to the appropriate runtime based on the Skill's declared
+`runtime` field.
+
+- Each runtime is pre-installed in the project's Docker image.
+- The MCP Service performs startup checks to ensure declared runtimes are
+  available.
+
 ### Deploy (Dev)
 
 Promoting a function from `testing` to `active` and bumping its semver in

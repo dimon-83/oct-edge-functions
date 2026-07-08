@@ -6,7 +6,8 @@
 import { createSession, deleteSession, getSession } from "./session.ts";
 import * as tools from "./tools.ts";
 import type { ToolResult } from "./types.ts";
-import { getDefaultRegistry, ToolRegistry } from "./registry.ts";
+import { getDefaultRegistry, type ToolRegistry } from "./registry.ts";
+import { FileSkillRegistryStore, SkillTools } from "./skills/mod.ts";
 
 const MCP_VERSION = "2024-11-05";
 
@@ -30,6 +31,10 @@ interface JsonRpcResponse {
 
 function setupRegistry(): ToolRegistry {
   const r = getDefaultRegistry();
+
+  const skillTools = new SkillTools({
+    registryStore: new FileSkillRegistryStore("./skills.json"),
+  });
 
   r.register({
     name: "list_functions",
@@ -324,6 +329,160 @@ function setupRegistry(): ToolRegistry {
       required: ["table_name", "policy_name"],
     },
     handler: (a) => tools.pgCreatePolicy(a),
+  });
+
+  // ---- Skill tools ----
+
+  r.register({
+    name: "list_skills",
+    description: "List all discovered skills with status, runtime and source",
+    inputSchema: { type: "object", properties: {} },
+    handler: () => skillTools.listSkills(),
+  });
+
+  r.register({
+    name: "get_skill",
+    description: "Get a skill's metadata, source and SKILL.md instructions",
+    inputSchema: {
+      type: "object",
+      properties: { name: { type: "string", description: "Skill name" } },
+      required: ["name"],
+    },
+    handler: (a) => skillTools.getSkill(a as { name: string }),
+  });
+
+  r.register({
+    name: "register_skill",
+    description:
+      "Register a skill in skills.json so it can be installed and enabled",
+    inputSchema: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "Skill name" },
+        source_type: {
+          type: "string",
+          enum: ["mooncakes", "npm", "git", "local"],
+          description: "Source type",
+        },
+        package: { type: "string", description: "Package identifier" },
+        version: { type: "string", description: "Exact version" },
+        url: { type: "string", description: "Git or download URL" },
+        git_url: { type: "string", description: "Git URL for npx skills add" },
+        path: { type: "string", description: "Local path" },
+        install_command: {
+          type: "string",
+          description:
+            "Optional install command (default generated from source)",
+        },
+        install_directory: {
+          type: "string",
+          description: "Optional install directory",
+        },
+        enabled: {
+          type: "boolean",
+          description: "Whether the skill is enabled",
+        },
+      },
+      required: ["name", "source_type"],
+    },
+    handler: (a) =>
+      skillTools.registerSkill(
+        a as {
+          name: string;
+          source_type: "mooncakes" | "npm" | "git" | "local";
+          package?: string;
+          version?: string;
+          url?: string;
+          git_url?: string;
+          path?: string;
+          install_command?: string;
+          install_directory?: string;
+          enabled?: boolean;
+        },
+      ),
+  });
+
+  r.register({
+    name: "unregister_skill",
+    description: "Remove a skill from skills.json",
+    inputSchema: {
+      type: "object",
+      properties: { name: { type: "string", description: "Skill name" } },
+      required: ["name"],
+    },
+    handler: (a) => skillTools.unregisterSkill(a as { name: string }),
+  });
+
+  r.register({
+    name: "install_skills",
+    description:
+      "Install or update skills according to skills.json. Omit name to install all.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        name: {
+          type: "string",
+          description: "Skill name (omit to install all)",
+        },
+      },
+    },
+    handler: (a) => skillTools.installSkills(a as { name?: string }),
+  });
+
+  r.register({
+    name: "invoke_skill",
+    description:
+      "Execute a skill's entry point with inputs and optional context",
+    inputSchema: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "Skill name" },
+        inputs: { type: "object", description: "Skill inputs" },
+        context: { type: "object", description: "Additional context" },
+        timeout_ms: {
+          type: "number",
+          description: "Execution timeout in milliseconds",
+        },
+      },
+      required: ["name"],
+    },
+    handler: (a) =>
+      skillTools.invokeSkill(
+        a as {
+          name: string;
+          inputs?: Record<string, unknown>;
+          context?: Record<string, unknown>;
+          timeout_ms?: number;
+        },
+      ),
+  });
+
+  r.register({
+    name: "suggest_skill",
+    description:
+      "Suggest skills that match user text or uploaded file metadata",
+    inputSchema: {
+      type: "object",
+      properties: {
+        text: { type: "string", description: "User text" },
+        file_name: { type: "string", description: "Uploaded file name" },
+        file_type: {
+          type: "string",
+          description: "MIME type of uploaded file",
+        },
+      },
+    },
+    handler: (a) =>
+      skillTools.suggestSkill(
+        a as { text?: string; file_name?: string; file_type?: string },
+      ),
+  });
+
+  r.register({
+    name: "sync_skills_registry",
+    description: "Sync skills.json with skills discovered on the filesystem",
+    inputSchema: { type: "object", properties: {} },
+    handler: () => skillTools.syncRegistry(),
   });
 
   return r;

@@ -28,7 +28,9 @@ export interface CronOptions {
   catch?: CronCatchHandler;
 }
 
-export type CronHandler = (ctx?: Record<string, unknown>) => void | Promise<void>;
+export type CronHandler = (
+  ctx?: Record<string, unknown>,
+) => void | Promise<void>;
 
 export type CronCatchHandler = (
   error: Error,

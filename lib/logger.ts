@@ -161,9 +161,11 @@ export class LoggerFactory {
 
 const defaultFactory: LoggerFactory = new LoggerFactory();
 
-export const shouldLog: (level: LogLevel) => boolean =
-  defaultFactory.shouldLog.bind(defaultFactory);
+export const shouldLog: (level: LogLevel) => boolean = defaultFactory.shouldLog
+  .bind(defaultFactory);
 export const logger: Logger = defaultFactory.createLogger();
 export const createRequestLogger = (requestId: string): Logger =>
   defaultFactory.createLogger(requestId);
-export const closeLogger = (): void => { defaultFactory.close(); };
+export const closeLogger = (): void => {
+  defaultFactory.close();
+};

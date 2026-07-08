@@ -11,15 +11,19 @@
  * - Error handling (retry, catch)
  */
 
-import { assertEquals, assertExists, assertInstanceOf, assert } from "jsr:@std/assert";
+import {
+  assert,
+  assertEquals,
+  assertExists,
+  assertInstanceOf,
+} from "@std/assert";
 import { cron } from "./cron.ts";
 import { CronTask } from "./types.ts";
 import {
-  registerTask,
-  registerTasks,
   listTasks,
   pauseTask,
-  resumeTask,
+  registerTask,
+  registerTasks,
   stopTask,
 } from "./scheduler.ts";
 
@@ -311,15 +315,17 @@ Deno.test({
   fn() {
     resetSchedulerState();
 
-    let caughtError: Error | null = null;
+    let _caughtError: Error | null = null;
 
     const task = cron({
       schedule: "* * * * *",
-      handler: () => { throw new Error("oops"); },
+      handler: () => {
+        throw new Error("oops");
+      },
       name: "catch-test",
       retryOnFailure: 1,
-      catch: (error, ctx) => {
-        caughtError = error;
+      catch: (error, _ctx) => {
+        _caughtError = error;
       },
     });
 

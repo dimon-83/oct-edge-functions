@@ -1,5 +1,5 @@
 import { CronTask } from "./types.ts";
-import { defaultLogger, type CronLogger } from "./logger.ts";
+import { type CronLogger, defaultLogger } from "./logger.ts";
 
 // In-memory task registry
 let tasks: CronTask[] = [];
@@ -47,7 +47,8 @@ export async function scanCrons(scanDir = "./crons"): Promise<CronTask[]> {
     for (const fileName of entries) {
       // Use absolute file path so dynamic import resolves against the filesystem
       // even when this module is loaded from a remote URL (e.g. JSR).
-      const filePath = new URL(`${scanDir}/${fileName}`, `file://${Deno.cwd()}/`).href;
+      const filePath =
+        new URL(`${scanDir}/${fileName}`, `file://${Deno.cwd()}/`).href;
       try {
         const mod = await import(filePath);
         const exported = mod.default;
@@ -72,7 +73,9 @@ export async function scanCrons(scanDir = "./crons"): Promise<CronTask[]> {
  */
 export function registerTask(task: CronTask): void {
   if (tasks.some((t) => t.name === task.name)) {
-    console.warn(`[cron] Task "${task.name}" already registered — skipping duplicate`);
+    console.warn(
+      `[cron] Task "${task.name}" already registered — skipping duplicate`,
+    );
     return;
   }
   tasks.push(task);
@@ -106,7 +109,7 @@ export async function startCrons(opts?: SchedulerOptions): Promise<void> {
   }
 
   // Dynamically import croner
-  const { Cron } = await import("jsr:@hexagon/croner@^8");
+  const { Cron } = await import("@hexagon/croner");
 
   for (const task of tasks) {
     // For paused tasks, create the cron job in paused state so
@@ -136,7 +139,11 @@ export async function startCrons(opts?: SchedulerOptions): Promise<void> {
               log.retry(task.label, attempt, error);
             } else {
               log.failed(task.label, maxAttempts, error);
-              task.catch?.(error, { name: task.name, schedule: task.schedule, attempt });
+              task.catch?.(error, {
+                name: task.name,
+                schedule: task.schedule,
+                attempt,
+              });
             }
           }
         }
@@ -155,7 +162,9 @@ export async function startCrons(opts?: SchedulerOptions): Promise<void> {
 /**
  * List all registered cron tasks and their statuses.
  */
-export function listTasks(): Array<{ name: string; schedule: string; status: string }> {
+export function listTasks(): Array<
+  { name: string; schedule: string; status: string }
+> {
   return tasks.map((t) => ({
     name: t.name,
     schedule: t.schedule,

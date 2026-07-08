@@ -28,15 +28,20 @@
 
 export { cron } from "./cron.ts";
 export { CronTask } from "./types.ts";
-export type { CronOptions, CronHandler, CronCatchHandler, CronStatus } from "./types.ts";
+export type {
+  CronCatchHandler,
+  CronHandler,
+  CronOptions,
+  CronStatus,
+} from "./types.ts";
 export {
-  scanCrons,
-  registerTask,
-  registerTasks,
-  startCrons,
   listTasks,
   pauseTask,
+  registerTask,
+  registerTasks,
   resumeTask,
+  scanCrons,
+  startCrons,
   stopTask,
 } from "./scheduler.ts";
 export type { SchedulerOptions } from "./scheduler.ts";

@@ -16,6 +16,9 @@ services:
     volumes:
       - ./functions:/app/functions
       - ./functions.json:/app/functions.json
+      - ./skills.json:/app/skills.json
+      - ./.claude/skills:/app/.claude/skills
+      - ./skills:/app/skills
       - ./plugins:/app/plugins:ro
       - ./logs:/app/logs
     command: >

@@ -1,0 +1,32 @@
+{
+  "version": "1.0.0",
+  "skills_dir": ".claude/skills",
+  "skills": [
+    {
+      "name": "pptz",
+      "enabled": false,
+      "source": {
+        "type": "mooncakes",
+        "package": "Milky2018/pptz",
+        "version": "0.6.0",
+        "git_url": "https://github.com/Milky2018/pptz.git"
+      },
+      "install": {
+        "directory": ".claude/skills/pptz"
+      }
+    },
+    {
+      "name": "cowsay",
+      "enabled": false,
+      "source": {
+        "type": "mooncakes",
+        "package": "Yoorkin/cowsay",
+        "version": "0.1.2",
+        "git_url": "https://github.com/Yoorkin/cowsay.git"
+      },
+      "install": {
+        "directory": ".claude/skills/cowsay"
+      }
+    }
+  ]
+}
