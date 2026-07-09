@@ -1,4 +1,9 @@
-import { corsMiddlewares, createAuthMiddlewares, HttpServer, loggingMiddlewares, startCrons } from "@oct-edge-fns/core";
+import { HttpServer, startCrons } from "@oct-edge-fns/core";
+import {
+  authMiddlewares,
+  corsPlugin,
+  loggingPlugin,
+} from "@oct-edge-fns/core/plugins";
 
 const PORT = parseInt(Deno.env.get("PORT") ?? "8080");
 const DENO_ENV = Deno.env.get("DENO_ENV") ?? "development";
@@ -7,9 +12,9 @@ const FUNCTIONS_DIR = Deno.env.get("FUNCTIONS_DIR") ?? "./functions";
 const CRONS_DIR = Deno.env.get("CRONS_DIR") ?? "./crons";
 
 const plugins = [
-  ...loggingMiddlewares,
-  ...corsMiddlewares,
-  ...createAuthMiddlewares(),
+  ...loggingPlugin,
+  ...corsPlugin,
+  ...authMiddlewares,
 ];
 
 const server = new HttpServer({

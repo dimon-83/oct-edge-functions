@@ -45,3 +45,6 @@ const corsMiddleware: Middleware = async (req, _ctx, next) => {
 };
 
 export const corsMiddlewares: Middleware[] = [corsMiddleware];
+
+/** Alias for use as a named plugin. */
+export const corsPlugin: Middleware[] = corsMiddlewares;

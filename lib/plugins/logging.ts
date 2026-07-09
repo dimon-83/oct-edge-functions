@@ -25,3 +25,6 @@ const loggingMiddleware: Middleware = async (req, ctx, next) => {
 };
 
 export const loggingMiddlewares: Middleware[] = [loggingMiddleware];
+
+/** Alias for use as a named plugin. */
+export const loggingPlugin: Middleware[] = loggingMiddlewares;

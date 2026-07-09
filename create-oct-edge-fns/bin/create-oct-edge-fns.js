@@ -315,18 +315,6 @@ async function main() {
     );
   }
 
-  // Remove unselected plugins
-  const allPlugins = ["auth", "cors", "logging", "rate-limit"];
-  const selectedPlugins = helpers.filter((h) => allPlugins.includes(h));
-  for (const plugin of allPlugins) {
-    if (!selectedPlugins.includes(plugin)) {
-      const pluginDir = path.join(root, "plugins", plugin);
-      if (fs.existsSync(pluginDir)) {
-        fs.rmSync(pluginDir, { recursive: true });
-      }
-    }
-  }
-
   // Remove crons dir if not selected
   if (!helpers.includes("crons")) {
     const cronsDir = path.join(root, "crons");
@@ -344,34 +332,36 @@ async function main() {
     }
   }
 
-  // Update main.ts: only import selected plugins
+  // Update main.ts: only keep selected official plugins
   const mainPath = path.join(root, "main.ts");
   if (fs.existsSync(mainPath)) {
     let content = fs.readFileSync(mainPath, "utf-8");
 
-    // Remove unselected plugin imports
-    if (!helpers.includes("auth")) {
-      content = content.replace(/import \{ authMiddlewares \} from "\.\/plugins\/auth\/index\.ts";\n/, "");
-      content = content.replace(/\s*\.\.\.authMiddlewares,/, "");
+    const pluginMap = {
+      auth: "authMiddlewares",
+      cors: "corsPlugin",
+      logging: "loggingPlugin",
+      "rate-limit": "rateLimitPlugin",
+    };
+
+    for (const [name, ident] of Object.entries(pluginMap)) {
+      if (!helpers.includes(name)) {
+        // Remove the named import from the @oct-edge-fns/core/plugins block
+        content = content.replace(new RegExp(`\\n\\s+${ident},`, "g"), "");
+        // Remove its spread in the plugins array
+        content = content.replace(new RegExp(`\\s*\\.\\.\\.${ident},?`, "g"), "");
+      }
     }
-    if (!helpers.includes("cors")) {
-      content = content.replace(/import \{ corsPlugin \} from "\.\/plugins\/cors\/index\.ts";\n/, "");
-      content = content.replace(/\s*\.\.\.corsPlugin,/, "");
-    }
-    if (!helpers.includes("logging")) {
-      content = content.replace(/import \{ loggingPlugin \} from "\.\/plugins\/logging\/index\.ts";\n/, "");
-      content = content.replace(/\s*\.\.\.loggingPlugin,/, "");
-    }
-    if (helpers.includes("rate-limit")) {
-      content = content.replace(
-        /import \{ corsPlugin \} from "\.\/plugins\/cors\/index\.ts";/,
-        'import { corsPlugin } from "./plugins/cors/index.ts";\nimport { rateLimitPlugin } from "./plugins/rate-limit/index.ts";'
-      );
-      content = content.replace(
-        /\.\.\.corsPlugin,/,
-        "...corsPlugin,\n  ...rateLimitPlugin,"
-      );
-    }
+
+    // Clean up empty imports and empty plugin arrays
+    content = content.replace(
+      /import\s*\{\s*\}\s*from\s*"@oct-edge-fns\/core\/plugins";\n/,
+      "",
+    );
+    content = content.replace(
+      /const plugins: Middleware\[\] = \[\s*\];/,
+      "const plugins: Middleware[] = [];",
+    );
 
     fs.writeFileSync(mainPath, content);
   }

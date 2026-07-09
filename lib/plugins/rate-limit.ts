@@ -1,12 +1,4 @@
-/**
- * Rate limit plugin — basic per-IP rate limiting using an in-memory store.
- *
- * This is a SYSTEM-LEVEL plugin: it runs on every request before the handler.
- * Configure via env vars:
- *   RATE_LIMIT_WINDOW_MS  — time window in ms (default: 60000 = 1 min)
- *   RATE_LIMIT_MAX        — max requests per window (default: 100)
- */
-import type { Middleware } from "@oct-edge-fns/core";
+import type { Middleware } from "../middleware.ts";
 
 const WINDOW_MS = parseInt(Deno.env.get("RATE_LIMIT_WINDOW_MS") ?? "60000");
 const MAX_REQUESTS = parseInt(Deno.env.get("RATE_LIMIT_MAX") ?? "100");
@@ -21,9 +13,9 @@ function cleanup(): void {
 }
 
 const rateLimitMiddleware: Middleware = async (req, _ctx, next) => {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
-    ?? req.headers.get("x-real-ip")
-    ?? "unknown";
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    req.headers.get("x-real-ip") ??
+    "unknown";
 
   const now = Date.now();
   let entry = store.get(ip);
@@ -38,7 +30,10 @@ const rateLimitMiddleware: Middleware = async (req, _ctx, next) => {
   if (entry.count > MAX_REQUESTS) {
     return Response.json(
       { error: "Too Many Requests" },
-      { status: 429, headers: { "Retry-After": String(Math.ceil((entry.resetAt - now) / 1000)) } },
+      {
+        status: 429,
+        headers: { "Retry-After": String(Math.ceil((entry.resetAt - now) / 1000)) },
+      },
     );
   }
 

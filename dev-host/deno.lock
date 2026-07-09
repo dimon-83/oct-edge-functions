@@ -2,19 +2,36 @@
   "version": "5",
   "specifiers": {
     "jsr:@hexagon/croner@*": "10.0.1",
+    "jsr:@hexagon/croner@8": "8.1.2",
+    "jsr:@oct-edge-fns/core@0.6": "0.6.0",
     "jsr:@std/assert@*": "1.0.19",
     "jsr:@std/assert@1": "1.0.19",
     "jsr:@std/fs@1": "1.0.23",
     "jsr:@std/internal@^1.0.12": "1.0.13",
     "jsr:@std/path@1": "1.1.4",
     "jsr:@std/path@^1.1.4": "1.1.4",
+    "jsr:@std/yaml@1": "1.1.2",
     "npm:@supabase/postgrest-js@^1.18.0": "1.21.4",
     "npm:pg@8": "8.21.0",
     "npm:sharp@*": "0.34.5"
   },
   "jsr": {
+    "@hexagon/croner@8.1.2": {
+      "integrity": "0dcc81bb9045fc2b447413bed76f4aaedef67469d2f37c079ea67aea2902af10"
+    },
     "@hexagon/croner@10.0.1": {
       "integrity": "95120f312b5e63afaaa4861838fe2d7b42f32554d2af96b7524b072abf63dabd"
+    },
+    "@oct-edge-fns/core@0.6.0": {
+      "integrity": "6219ccc19456044095c430f4de8e19e71c896401c30ed7ab5f951a2f8164fd62",
+      "dependencies": [
+        "jsr:@hexagon/croner@8",
+        "jsr:@std/fs",
+        "jsr:@std/path@1",
+        "jsr:@std/yaml",
+        "npm:@supabase/postgrest-js",
+        "npm:pg"
+      ]
     },
     "@std/assert@1.0.19": {
       "integrity": "eaada96ee120cb980bc47e040f82814d786fe8162ecc53c91d8df60b8755991e",
@@ -37,6 +54,9 @@
       "dependencies": [
         "jsr:@std/internal"
       ]
+    },
+    "@std/yaml@1.1.2": {
+      "integrity": "de612653c036749ba2044165e316f52412b0f0698afffb7ee80b5331d6d2abae"
     }
   },
   "npm": {
@@ -219,8 +239,8 @@
     "pg-cloudflare@1.4.0": {
       "integrity": "sha512-Vo7z/6rrQYxpNRylp4Tlob2elzbh+N/MOQbxFVWCxS7oEx6jF53GTJFxK2WWpKuBRkmiin4Mt+xofFDjx09R0A=="
     },
-    "pg-connection-string@2.13.0": {
-      "integrity": "sha512-EMnU9E2fSULdsbErBbMaXJvFeD9B4+nPcM3f+4lsiCR0BHLPrLVjv3DbyM2hgQQviKJaTWIRRTjKjWlHg3p2ig=="
+    "pg-connection-string@2.14.0": {
+      "integrity": "sha512-XwWDGcLRGCXAR8F/AM5bG7Q+A3Wm2s6QeEjlOKZLlH3UYcguiqCWKyWXVag5TLTIjR7oOJUY8kcADaZgWPyLeg=="
     },
     "pg-int8@1.0.1": {
       "integrity": "sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw=="
@@ -231,8 +251,8 @@
         "pg"
       ]
     },
-    "pg-protocol@1.14.0": {
-      "integrity": "sha512-n5taZ1kO3s9ngDTVxsEznOqCyToTgz0FLuPq0B33COy5pPpuWJpY3/2oRBVETuOgzdqRXfWpM9HIhp2LBBT1BA=="
+    "pg-protocol@1.15.0": {
+      "integrity": "sha512-cq9sECI5s0+uPUXjbz8ioyPJni6RzsRib0US67i5IoTZKw8fNeYlVE7u8F4dG7vEJJtc5wdD1K189lCCUwqWTQ=="
     },
     "pg-types@2.2.0": {
       "integrity": "sha512-qTAAlrEsl8s4OiEQY69wDvcMIdQN6wdz5ojQiOy6YRMuynxenON0O5oCpJI6lshc6scgAY8qvJ2On/p+CXY0GA==",
@@ -342,11 +362,11 @@
   },
   "workspace": {
     "dependencies": [
+      "jsr:@oct-edge-fns/core@0.6",
       "jsr:@std/assert@1",
       "jsr:@std/fs@1",
       "jsr:@std/path@1",
-      "npm:@supabase/postgrest-js@^1.18.0",
-      "npm:pg@8"
+      "npm:@supabase/postgrest-js@^1.18.0"
     ]
   }
 }

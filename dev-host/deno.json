@@ -12,9 +12,8 @@
     "@std/path": "jsr:@std/path@^1.0.0",
     "@std/assert": "jsr:@std/assert@^1.0.0",
     "@supabase/postgrest-js": "npm:@supabase/postgrest-js@^1.18.0",
-    "@oct-edge-fns/core": "jsr:@oct-edge-fns/core@^0.2.1",
-    "@oct-edge-fns/core/": "jsr:@oct-edge-fns/core@^0.2.1/",
-    "pg": "npm:pg@^8"
+    "@oct-edge-fns/core": "jsr:@oct-edge-fns/core@^0.6.0",
+    "@oct-edge-fns/core/plugins": "jsr:@oct-edge-fns/core@^0.6.0/plugins"
   },
   "lint": {
     "include": ["crons/", "plugins/", "main.ts"],

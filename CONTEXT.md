@@ -88,6 +88,31 @@ MCP Service delegates to the appropriate runtime based on the Skill's declared
 - The MCP Service performs startup checks to ensure declared runtimes are
   available.
 
+### Official Plugin
+
+A middleware plugin shipped and versioned as part of `@oct-edge-fns/core`. Child
+projects import Official Plugins from `@oct-edge-fns/core/plugins` instead of
+owning a copy of their source code.
+
+- Examples: auth, cors, logging, rate-limit.
+- Updates to Official Plugins are delivered through core version upgrades.
+
+### Custom Plugin
+
+A middleware plugin owned by a single child project and kept in the project's
+`plugins/` directory. Custom Plugins coexist with Official Plugins but are not
+managed by core releases.
+
+### Project Upgrade
+
+The process of moving a child project to a newer version of `@oct-edge-fns/core`.
+
+- Updates the core import constraint in `deno.json`.
+- Regenerates `deno.lock` to drop stale version pins.
+- Removes any stale local `lib/` copy from earlier scaffolding.
+- Re-caches remote dependencies.
+- Does not modify business assets such as functions, crons, or skills.
+
 ### Deploy (Dev)
 
 Promoting a function from `testing` to `active` and bumping its semver in

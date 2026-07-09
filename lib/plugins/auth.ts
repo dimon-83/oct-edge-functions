@@ -6,7 +6,7 @@ export interface PgrestTokenProvider {
 }
 
 export function createAuthMiddlewares(
-  provider: PgrestTokenProvider,
+  provider: PgrestTokenProvider = envTokenProvider,
 ): Middleware[] {
   return [
     (_req, ctx, next) => {
@@ -22,3 +22,9 @@ export function createAuthMiddlewares(
 export const envTokenProvider: PgrestTokenProvider = {
   getToken: () => Deno.env.get("PGREST_JWT"),
 };
+
+/** Default auth plugin using env PGREST_JWT */
+export const authMiddlewares: Middleware[] = createAuthMiddlewares();
+
+/** Alias for creating auth middlewares with a custom token provider. */
+export const createAuthPlugin = createAuthMiddlewares;

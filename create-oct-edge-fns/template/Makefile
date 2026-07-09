@@ -40,6 +40,7 @@ help:
 	@echo "  make status         查看容器状态"
 	@echo "  make test           运行所有测试"
 	@echo "  make lint           运行代码检查"
+	@echo "  make upgrade-core   升级 @oct-edge-fns/core 到新版"
 	@echo "  make cache          缓存远程依赖"
 	@echo "  make set-port       一键修改端口映射（.env.* + docker-compose.yml）"
 	@echo "  make get-port       查看当前端口配置"
@@ -182,6 +183,13 @@ clean:
 	$(DOCKER_COMPOSE) down --rmi all --volumes --remove-orphans 2>/dev/null || true
 	docker rmi $(FULL_IMAGE_NAME) 2>/dev/null || true
 	@echo "✅ 清理完成"
+
+# ============================================
+# 升级 core 依赖
+# ============================================
+.PHONY: upgrade-core
+upgrade-core:
+	deno run --allow-net --allow-read --allow-write --allow-run --allow-env scripts/upgrade-core.ts
 
 # ============================================
 # 缓存远程依赖
