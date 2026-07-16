@@ -15,7 +15,8 @@
     "./auth": "./plugins/auth.ts",
     "./plugins": "./plugins/mod.ts",
     "./cron": "./cron/mod.ts",
-    "./mcp/skills": "./mcp/skills/mod.ts"
+    "./mcp/skills": "./mcp/skills/mod.ts",
+    "./pg-duckdb": "./pg-duckdb/mod.ts"
   },
   "publish": {
     "include": [

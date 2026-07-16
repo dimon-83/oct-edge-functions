@@ -123,6 +123,24 @@ function buildDenoPermissions(skill: Skill): string[] {
     perms.push(`--allow-run=${runCmds.join(",")}`);
   }
 
+  const writePaths = skill.meta.permissions?.write ?? [];
+  if (writePaths.length > 0) {
+    if (writePaths.includes("*")) {
+      perms.push("--allow-write");
+    } else {
+      perms.push(`--allow-write=${writePaths.join(",")}`);
+    }
+  }
+
+  const netHosts = skill.meta.permissions?.net ?? [];
+  if (netHosts.length > 0) {
+    if (netHosts.includes("*")) {
+      perms.push("--allow-net");
+    } else {
+      perms.push(`--allow-net=${netHosts.join(",")}`);
+    }
+  }
+
   return perms;
 }
 

@@ -29,7 +29,7 @@ interface JsonRpcResponse {
 // Tool registry setup
 // ------------------------------------------------------------------
 
-function setupRegistry(): ToolRegistry {
+async function setupRegistry(): Promise<ToolRegistry> {
   const r = getDefaultRegistry();
 
   const skillTools = new SkillTools({
@@ -485,10 +485,25 @@ function setupRegistry(): ToolRegistry {
     handler: () => skillTools.syncRegistry(),
   });
 
+  // ---- Optional pg-duckdb tools ----
+  // Loaded lazily so the pg-duckdb toolkit never affects other MCP tools
+  // when it is not explicitly enabled.
+  if (Deno.env.get("PG_DUCKDB_MCP_ENABLED") === "true") {
+    try {
+      const { registerPgDuckdbTools } = await import("./pg-duckdb-tools.ts");
+      registerPgDuckdbTools(r);
+    } catch (err) {
+      console.error(
+        "[MCP] Failed to register pg-duckdb tools:",
+        err instanceof Error ? err.message : String(err),
+      );
+    }
+  }
+
   return r;
 }
 
-const registry = setupRegistry();
+const registry = await setupRegistry();
 
 // ------------------------------------------------------------------
 // Request handlers

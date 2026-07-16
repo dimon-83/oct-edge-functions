@@ -19,7 +19,6 @@ COPY functions.json .
 COPY skills.json .
 COPY main.ts .
 COPY crons /app/crons
-COPY plugins /app/plugins
 COPY skills /app/skills
 RUN deno cache main.ts
 

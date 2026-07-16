@@ -45,8 +45,10 @@ export interface SkillTriggers {
 
 export interface SkillPermissions {
   read?: string[];
+  write?: string[];
   env?: string[];
   run?: string[];
+  net?: string[];
 }
 
 export interface SkillMeta {

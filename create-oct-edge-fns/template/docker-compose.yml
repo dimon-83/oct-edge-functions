@@ -19,7 +19,6 @@ services:
       - ./skills.json:/app/skills.json
       - ./.claude/skills:/app/.claude/skills
       - ./skills:/app/skills
-      - ./plugins:/app/plugins:ro
       - ./logs:/app/logs
     command: >
       sh -c 'if [ "$$DENO_ENV" = "development" ] || [ "$$DENO_ENV" = "dev" ];

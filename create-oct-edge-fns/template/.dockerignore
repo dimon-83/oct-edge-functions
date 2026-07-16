@@ -1,0 +1,19 @@
+# Dependencies and caches
+vendor/
+node_modules/
+.deno/
+
+# Build artifacts
+*.tar
+*.log
+logs/
+
+# Version control
+.git/
+.gitignore
+
+# IDE and local config
+.vscode/
+.idea/
+.env*
+!.env.example

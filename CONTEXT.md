@@ -103,6 +103,30 @@ A middleware plugin owned by a single child project and kept in the project's
 `plugins/` directory. Custom Plugins coexist with Official Plugins but are not
 managed by core releases.
 
+### Toolkit
+
+A collection of business-capability functions imported by **Functions**,
+**Crons**, or **Skills**. Unlike a **Plugin**, a Toolkit is not request
+middleware; it provides reusable domain operations backed by external services
+or databases.
+
+- Examples: pg-duckdb analytics toolkit, external API clients, report generators.
+- Imported explicitly where needed (`import { ... } from "@oct-edge-fns/core/<toolkit>"`).
+
+### Official Toolkit
+
+A Toolkit shipped and versioned as part of `@oct-edge-fns/core`. Child projects
+import Official Toolkits from `@oct-edge-fns/core/<toolkit>` instead of owning a
+copy of their source code.
+
+- Updates are delivered through core version upgrades.
+
+### Custom Toolkit
+
+A Toolkit owned by a single child project and kept in the project's own modules.
+Custom Toolkits coexist with Official Toolkits but are not managed by core
+releases.
+
 ### Project Upgrade
 
 The process of moving a child project to a newer version of `@oct-edge-fns/core`.
